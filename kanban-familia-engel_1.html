@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanban Família Engel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+/*
+===============================================
+KANBAN MODERN UI
+Versão: 1.0
+Inspirado em:
+- Trello
+- ClickUp
+- Linear
+- Notion
+
+Criado para:
+Kanban Família Engel
+===============================================
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root{
+    /* ===== PRIMARY ===== */
+    --primary:#5B7CFA;
+    --primary-hover:#4868E7;
+    --primary-active:#3A54C4;
+    --primary-disabled:#C2CDF8;
+
+    /* ===== NEUTRALS / SURFACES ===== */
+    --bg:#F6F8FC;
+    --surface:#FFFFFF;
+    --surface-2:#FAFBFD;
+    --surface-3:#F2F5FA;
+    --surface-elevation-1: var(--surface);
+    --surface-elevation-2: var(--surface-2);
+    --surface-elevation-3: var(--surface-3);
+    --card-bg: var(--surface);
+    --border:#E5EAF2;
+    --border-hover:#D6DEE8;
+    --divider:#EDEFF5;
+    --hover-bg: rgba(15,23,42,.035);
+    --overlay: rgba(15,23,42,.35);
+
+    /* ===== TEXT LEVELS ===== */
+    --text:#23272F;
+    --text-secondary:#4B5568;
+    --text-light:#697586;
+    --text-muted:#9AA5B1;
+    --text-disabled:#C3CAD6;
+    --text-placeholder:#ADB5C4;
+    --text-inverse:#FFFFFF;
+
+    /* ===== STATES: SUCCESS / WARNING / DANGER / INFO / NEUTRAL ===== */
+    --success:#1FA463; --success-bg:#E6F7EF; --success-border:#A9E4C6; --success-hover:#178F55;
+    --warning:#D98A1A; --warning-bg:#FDF3E2; --warning-border:#F3D48F; --warning-hover:#BC7712;
+    --danger:#E5484D;  --danger-bg:#FCEBEC;  --danger-border:#F5B8BA;  --danger-hover:#C93A3F;
+    --info:#2E7BD6;    --info-bg:#E8F1FC;    --info-border:#A9CDF0;    --info-hover:#1F63B0;
+    --neutral:#6B7280; --neutral-bg:#F1F2F5; --neutral-border:#D8DCE3; --neutral-hover:#565D6B;
+
+    /* ===== KANBAN / LABEL PALETTE (9 cores) — cada uma com main / light / dark ===== */
+    --blue:#4C6EF5;      --blue-light:#E3E8FF;      --blue-dark:#2E45B8;
+    --purple:#8B5CF6;    --purple-light:#EDE4FF;    --purple-dark:#5B32C9;
+    --pink:#EC4899;      --pink-light:#FCE1EE;      --pink-dark:#B22D6C;
+    --red:#EF4444;       --red-light:#FCE4E4;       --red-dark:#B32323;
+    --orange:#F97316;    --orange-light:#FEE9D6;    --orange-dark:#B85A0F;
+    --yellow:#EAB308;    --yellow-light:#FBF0CE;    --yellow-dark:#9C7A05;
+    --green:#22C55E;     --green-light:#DDF5E6;     --green-dark:#157A3D;
+    --turquoise:#14B8A6; --turquoise-light:#D7F5F1; --turquoise-dark:#0D7A6E;
+    --gray:#64748B;      --gray-light:#E7EAEF;      --gray-dark:#3F4A5C;
+
+    /* ===== GLASS / OVERLAY (usados em sidebar, colunas e botões translúcidos) ===== */
+    --sidebar-bg: rgba(255,255,255,.72);
+    --column-bg: rgba(255,255,255,.70);
+    --glass-btn-bg: rgba(255,255,255,.85);
+    --glass-btn-bg-soft: rgba(255,255,255,.45);
+
+    /* ===== SHADOWS ===== */
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.03);
+    --shadow-sm: 0 4px 12px rgba(15,23,42,.05);
+    --shadow-md: 0 10px 24px rgba(15,23,42,.08);
+    --shadow-lg: 0 18px 45px rgba(15,23,42,.14);
+    --shadow-xl: 0 30px 70px rgba(15,23,42,.18);
+
+    /* ===== OPACITY TOKENS ===== */
+    --opacity-glass: .70;
+    --opacity-overlay: .35;
+    --opacity-hover: .06;
+    --opacity-focus: .15;
+    --opacity-dropdown-shadow: .18;
+    --opacity-modal-shadow: .18;
+    --opacity-tooltip-bg: .92;
+
+    /* ===== RADIUS / MOTION ===== */
+    --radius-xs:8px;
+    --radius-sm:12px;
+    --radius-md:16px;
+    --radius-lg:20px;
+    --radius-xl:28px;
+    --transition:.25s cubic-bezier(.2,.8,.2,1);
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+@media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+        animation-duration:0.01ms !important; animation-iteration-count:1 !important;
+        transition-duration:0.01ms !important; scroll-behavior:auto !important;
+    }
+}
+html{ scroll-behavior:smooth; }
+body{
+    font-family:'Inter',sans-serif;
+    background:
+      radial-gradient(circle at 12% -8%, rgba(76,110,245,.07), transparent 42%),
+      radial-gradient(circle at 100% 0%, rgba(201,124,109,.09), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(34,197,94,.05), transparent 42%),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+}
+body.dark{
+    background:
+      radial-gradient(circle at 12% -8%, rgba(107,140,255,.10), transparent 45%),
+      radial-gradient(circle at 100% 0%, rgba(201,124,109,.12), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(61,214,140,.07), transparent 45%),
+      var(--bg);
+    background-attachment:fixed;
+}
+
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--border-hover); border-radius:30px; transition:.2s; }
+::-webkit-scrollbar-thumb:hover{ background:#B7C2CF; }
+
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; transition:var(--transition); }
+input, textarea, select{ font-family:inherit; }
+
+main{ max-width:1400px; margin:0 auto; padding-bottom:80px; flex: 1; min-width: 0; }
+
+.app-shell{ display:flex; min-height:100vh; align-items:flex-start; }
+
+.sidebar{
+    width:240px; flex-shrink:0;
+    background:var(--sidebar-bg);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-right:1px solid var(--border);
+    height:100vh; position:sticky; top:0;
+    display:flex; flex-direction:column;
+    padding:24px 14px;
+}
+.sidebar-brand{ padding:6px 10px 22px; }
+.sidebar-brand h1{ font-size:17px; font-weight:700; letter-spacing:-0.02em; color:var(--text); line-height:1.3; }
+
+.sidebar-nav{ display:flex; flex-direction:column; gap:3px; flex:1; overflow-y:auto; }
+.sidebar-nav button{
+    all:unset; cursor:pointer; display:flex; align-items:center; gap:11px;
+    padding:10px 10px 10px 9px; border-radius:12px; color:var(--text-light);
+    font-size:14px; font-weight:600; transition:var(--transition);
+    border-left:3px solid transparent; white-space:nowrap;
+}
+.sidebar-nav button:hover{ background:var(--surface-3); color:var(--text); }
+.sidebar-nav button.active{ background:var(--surface-3); color:var(--text); border-left-color:var(--tab-color,var(--primary)); }
+.sidebar-add-board-btn{ color:var(--text-muted) !important; }
+.sidebar-add-board-btn .sidebar-icon{ background:transparent !important; border:1.5px dashed var(--border-hover); color:var(--text-muted); font-weight:700; font-size:15px; }
+.sidebar-add-board-btn:hover{ color:var(--text) !important; }
+.sidebar-add-board-btn:hover .sidebar-icon{ border-color:var(--primary); color:var(--primary); }
+.sidebar-icon{
+    width:26px; height:26px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--surface-3); color:var(--text-light);
+}
+.sidebar-icon svg{ width:15px; height:15px; stroke:currentColor; }
+
+.sidebar-footer{ display:flex; flex-direction:column; gap:10px; padding:14px 10px 4px; border-top:1px solid var(--border); margin-top:10px; }
+
+.user-badge{
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    padding:9px 14px; box-shadow:var(--shadow-xs); cursor:pointer; transition:var(--transition);
+    font-size:13px; text-align:left; width: 100%;
+}
+.user-badge:hover{ transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+
+.sync-status{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-light); padding:0 4px; }
+.sync-dot{ width:9px; height:9px; border-radius:50%; background:#32D583; box-shadow: 0 0 8px rgba(50,213,131,.4); flex-shrink:0; }
+.sync-dot.saving{ background:#FDB022; }
+.sync-dot.error{ background:#F04438; }
+
+.board-inner{ padding:32px; }
+
+.filter-bar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
+.view-mode-toggle{ display:flex; gap:2px; background:var(--surface-3); border-radius:10px; padding:3px; }
+.view-mode-toggle button{
+    all:unset; cursor:pointer; padding:7px 14px; border-radius:8px; font-size:13px; font-weight:600;
+    color:var(--text-light); transition:var(--transition);
+}
+.view-mode-toggle button.active{ background:var(--surface); color:var(--text); box-shadow:var(--shadow-xs); }
+.filter-trigger-btn{
+    all:unset; cursor:pointer; display:flex; align-items:center; gap:8px;
+    padding:9px 16px; border-radius:10px; background:var(--surface); border:1px solid var(--border);
+    color:var(--text-light); font-size:13.5px; font-weight:600; transition:var(--transition);
+    box-shadow:var(--shadow-xs);
+}
+.filter-trigger-btn:hover{ border-color:var(--border-hover); color:var(--text); }
+.filter-trigger-btn.active{ border-color:var(--primary); color:var(--primary); background:rgba(91,124,250,.14); }
+.filter-trigger-badge{
+    display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px;
+    padding:0 5px; border-radius:999px; background:var(--primary); color:white; font-size:11px; font-weight:700;
+}
+.filter-trigger-badge:empty{ display:none; }
+
+.filter-popover{ width:280px; max-height:70vh; }
+.filter-popover-body{ overflow-y:auto; }
+.filter-group{ margin-bottom:16px; }
+.filter-group-label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:8px; }
+.filter-checkbox-row{
+    display:flex; align-items:center; gap:9px; padding:7px 4px; font-size:13.5px; color:var(--text);
+    cursor:pointer; border-radius:8px; transition:var(--transition);
+}
+.filter-checkbox-row:hover{ background:var(--surface-3); }
+.filter-checkbox-row input[type=checkbox]{ width:16px; height:16px; accent-color:var(--primary); flex-shrink:0; }
+.filter-icon{ font-size:14px; flex-shrink:0; }
+.filter-label-pill{ font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; }
+.filter-hint{ font-size:11.5px; color:var(--text-muted); margin-top:4px; }
+.filter-popover .popover-search{ margin-bottom:0; }
+
+.board-banner{
+    position:relative; overflow:hidden; display:flex; align-items:center; gap:14px;
+    padding:22px 28px; margin-bottom:24px; border-radius:var(--radius-lg); min-height:auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    box-shadow: var(--shadow-md);
+}
+.board-banner::before{ content:""; position:absolute; width:220px; height:220px; right:-90px; top:-100px; border-radius:50%; background: rgba(255,255,255,.10); }
+.board-banner::after{ content:""; position:absolute; width:120px; height:120px; bottom:-60px; left:-30px; border-radius:50%; background: rgba(255,255,255,.08); }
+.board-banner .icon{ width:40px; height:40px; border-radius:12px; background: rgba(255,255,255,.18); display:flex; justify-content:center; align-items:center; backdrop-filter:blur(10px); z-index:2; flex-shrink:0; }
+.board-banner .icon svg{ width:20px; height:20px; stroke:white; }
+.board-banner h1{ color:white; font-size:20px; font-weight:700; margin-bottom:2px; position:relative; z-index:2; }
+.board-banner .subtitle{ color:rgba(255,255,255,.85); font-size:13px; opacity:.85; position:relative; z-index:2; }
+
+.overview-wrap{ padding:32px; }
+.overview-board{ margin-bottom:42px; }
+
+.overview-board-header{
+    display:flex; align-items:center; gap:18px; background:var(--surface); border-radius:20px;
+    padding:18px 22px; border:1px solid var(--border); box-shadow:var(--shadow-sm);
+    cursor:pointer; transition:var(--transition);
+}
+.overview-board-header:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.overview-board-header .icon{
+    width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color:white;
+}
+.overview-board-header .icon svg{ width:24px; height:24px; stroke:white; }
+.overview-board-header h2{ font-size:18px; font-weight:700; color:var(--text); }
+.overview-board-header .go{ margin-left:auto; color:var(--text-light); font-size:13px; font-weight:600; }
+
+.mini-columns{ display:flex; gap:18px; overflow-x:auto; padding-top:18px; padding-bottom:10px; }
+.mini-column{ width:260px; flex-shrink:0; }
+.mini-column .name{ font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; padding-left:4px; }
+
+.mini-card{
+    background:var(--surface); border:none; border-radius:16px;
+    padding:0; margin-bottom:10px; box-shadow:var(--shadow-xs); transition:var(--transition);
+    overflow:hidden;
+}
+.mini-card:hover{ transform: translateY(-3px); box-shadow:var(--shadow-md); }
+.mini-card-content{ padding:10px 12px; }
+.mini-card .meta-row{ margin-top:8px; }
+
+.board-columns{ display:flex; align-items:flex-start; gap:22px; overflow-x:auto; padding-bottom:20px; padding-top:4px; }
+
+/* ---------- List view ---------- */
+.board-list{ display:flex; flex-direction:column; gap:18px; padding-bottom:20px; }
+.list-section{ background:var(--surface); border-radius:16px; border:1px solid var(--border); overflow:hidden; }
+.list-section-header{
+    display:flex; align-items:center; gap:12px; padding:13px 18px;
+    border-left:4px solid var(--accent, var(--border-hover)); background:var(--surface-2);
+}
+.list-section-name{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text); }
+.list-rows{ display:flex; flex-direction:column; }
+.list-row{
+    display:flex; align-items:center; gap:14px; padding:12px 18px;
+    border-bottom:1px solid var(--divider); cursor:pointer; transition:var(--transition);
+}
+.list-row:last-child{ border-bottom:none; }
+.list-row:hover{ background:var(--surface-2); }
+.list-row-labels{ flex-shrink:0; }
+.list-row-labels .card-labels-row{ margin-bottom:0; }
+.list-row-title{ flex:1; font-size:14px; font-weight:600; color:var(--text); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.list-row-meta{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.list-row-meta .meta-row{ margin-top:0; }
+
+.column{
+    flex:1 0 270px; max-width:380px; min-height:120px; display:flex; flex-direction:column;
+    border-radius:var(--radius-lg); background:var(--surface-2);
+    border:1px solid var(--border);
+    box-shadow: var(--shadow-xs);
+    transition:var(--transition);
+    position:relative;
+}
+.column:hover{ transform:translateY(-2px); }
+.column.drag-over{ border:2px dashed var(--primary); box-shadow: 0 0 0 6px rgba(91,124,250,.08); }
+
+.column-header{ display:flex; align-items:center; justify-content:space-between; padding:16px 16px 10px; background:transparent; border:none; border-bottom:2px solid var(--accent, rgba(0,0,0,.1)); margin:0; }
+.column-header-right{ display:flex; align-items:center; gap:4px; }
+.column-header .name{ font-size:13.5px; font-weight:700; color:var(--text); }
+.column-add-btn{
+    all:unset; cursor:pointer; width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+    border-radius:7px; color:var(--text-light); font-size:16px; font-weight:700; transition:var(--transition);
+}
+.column-add-btn:hover{ background:var(--surface-3); color:var(--text); }
+.column-header .count{
+    background:var(--surface-3); color:var(--text); min-width:28px; height:28px; padding:0 10px;
+    border-radius:999px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; border:1px solid var(--border); box-shadow:var(--shadow-xs);
+}
+
+.col-menu-btn{
+    all:unset; cursor:pointer; width:32px; height:32px; border-radius:10px; display:flex;
+    align-items:center; justify-content:center; color:var(--text-light); transition:var(--transition);
+}
+.col-menu-btn:hover{ background:var(--surface-3); box-shadow:var(--shadow-xs); color:var(--text); }
+
+.card-list{ padding: 0 14px 14px; min-height:40px; }
+
+.empty-hint{ background:var(--surface); border:2px dashed var(--border); border-radius:16px; padding:20px; color:var(--text-muted); font-size:13px; text-align:center; }
+
+.card{
+    background:var(--surface); border:none; border-radius:var(--radius-md); padding:0; margin-bottom:14px;
+    cursor:grab; position:relative; overflow:hidden;
+    box-shadow: var(--shadow-xs);
+    transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease, border-color .18s ease;
+    touch-action: none; -webkit-touch-callout: none; user-select: none;
+}
+.card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.card:active{ cursor:grabbing; }
+.card.dragging{ opacity:.35; }
+
+.card-ghost{ position:fixed; pointer-events:none; z-index:9999; border-radius:var(--radius-md); box-shadow: var(--shadow-lg); overflow:hidden; }
+
+.card-menu-btn{
+    all:unset; cursor:pointer; position:absolute; top:8px; right:8px; z-index:2;
+    width:22px; height:22px; display:flex; align-items:center; justify-content:center;
+    border-radius:6px; color:var(--text-light); font-weight:700; font-size:14px; line-height:1;
+    background:var(--glass-btn-bg); opacity:.5; transition:opacity .15s ease, background .15s ease;
+}
+.card:hover .card-menu-btn{ opacity:1; }
+.card-menu-btn:hover{ background:var(--surface-3); color:var(--text); }
+
+.card-label-bar{ height:6px; width:100%; flex-shrink:0; }
+.card-labels-row{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:7px; }
+.card-label-chip{ font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:6px; line-height:1.4; }
+.card-avatars{ display:flex; align-items:center; margin-left:auto; }
+.avatar-chip{
+    width:22px; height:22px; border-radius:50%; background:var(--primary); color:#fff;
+    font-size:9.5px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--surface); margin-left:-7px; flex-shrink:0;
+}
+.avatar-chip:first-child{ margin-left:0; }
+.card-content{ padding:12px 14px; }
+
+.card .title{ font-size:15px; font-weight:700; color:var(--text); line-height:1.5; }
+
+.card .meta-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+
+.meta-pill{
+    display:flex; align-items:center; gap:6px; padding: 6px 10px; border-radius:999px;
+    background: var(--surface-3); font-size:12px; font-weight:600; color:var(--text-light);
+}
+.meta-pill.due-pill{ background:var(--warning-bg); color:var(--warning-hover); }
+.meta-pill.due-pill.overdue{ background:var(--danger-bg); color:var(--danger-hover); }
+
+.add-card-btn{
+    all:unset; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+    margin: 4px 14px 14px; padding:14px; border-radius:14px; border:2px dashed var(--border);
+    background:var(--surface); color:var(--text-light); font-weight:600; transition:var(--transition);
+}
+.add-card-btn:hover{ border-color:var(--primary); background:var(--surface-2); color:var(--primary); }
+
+.add-column-btn{
+    all:unset; cursor:pointer; width:280px; flex-shrink:0; padding:22px; border-radius:var(--radius-lg);
+    border:2px dashed var(--border); background:var(--glass-btn-bg-soft); backdrop-filter:blur(10px);
+    color:var(--text-light); font-weight:700; transition:var(--transition); height: fit-content;
+}
+.add-column-btn:hover{ background:var(--surface); transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:var(--primary); color:var(--primary); }
+
+.column-menu{
+    position:fixed; border:none; border-radius:var(--radius-lg); padding:10px;
+    background:var(--surface); box-shadow: var(--shadow-lg);
+    display:flex; flex-direction:column; min-width:220px; z-index:10000;
+    animation:dropdownOpen .18s ease; transform-origin:top right;
+}
+.column-menu button{ all:unset; box-sizing:border-box; cursor:pointer; padding:10px 14px; border-radius:12px; transition:var(--transition); display:flex; align-items:center; gap:10px; width:100%; font-size:13px; font-weight:600; text-align:left; color:var(--text); }
+.column-menu button:hover{ background:var(--surface-3); }
+.column-menu button.danger{ color:var(--danger); }
+.column-menu-divider{ height:1px; margin:10px 0; background:var(--border); }
+.column-menu-label{ padding:6px 12px; color:var(--text-muted); text-transform:uppercase; font-size:11px; letter-spacing:.08em; }
+
+.column-menu-swatches{ display:flex; flex-wrap:wrap; gap:10px; padding:10px 12px; }
+.column-menu-swatches .swatch{ width:24px; height:24px; transition:var(--transition); }
+.column-menu-swatches .swatch:hover{ transform:scale(1.18); }
+.column-menu-swatches .swatch.selected{ border:3px solid white; box-shadow: 0 0 0 2px var(--text); }
+
+.modal-backdrop{
+    position:fixed; inset:0; display:flex; justify-content:center; align-items:flex-start;
+    overflow-y:auto; padding:40px 20px; background:rgba(15,23,42,.35);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    animation:fadeBackdrop .25s ease; z-index:9999;
+}
+
+.modal{
+    width:90vw; max-width:900px; background:var(--surface); border-radius:20px; padding:0;
+    border:1px solid rgba(255,255,255,.65); box-shadow: var(--shadow-xl);
+    animation:modalOpen .28s ease;
+    display:flex; flex-direction:row; position:relative;
+    max-height:85vh;
+}
+
+.card-modal-main{ flex:3; padding:26px; overflow-y:auto; max-height:85vh; min-width:0; }
+.card-modal-sidebar{
+    flex:2; min-width:280px; border-left:1px solid var(--border); padding:22px; background:var(--surface-2);
+    overflow-y:auto; max-height:85vh; display:flex; flex-direction:column;
+    border-radius:0 20px 20px 0;
+}
+
+@media (max-width:768px){
+    .modal{ flex-direction:column; width:94vw; max-width:94vw; max-height:88vh; }
+    .card-modal-main{ max-height:none; }
+    .card-modal-sidebar{ border-left:none; border-top:1px solid var(--border); max-height:none; border-radius:0 0 20px 20px; }
+}
+
+.modal-close{
+    all:unset; width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; border-radius:10px; color:var(--text-light); transition:var(--transition);
+    position:absolute; top:14px; right:14px; z-index:5; background:var(--surface);
+}
+.modal-close:hover{ background:var(--surface-3); color:var(--text); }
+
+.modal .title-input{
+    width:100%; border:none; background:transparent; font-size:21px; font-weight:700;
+    color:var(--text); margin-bottom:6px; letter-spacing:-0.5px; padding: 4px 0;
+}
+.modal .title-input:focus{ outline:none; }
+.modal .title-input::placeholder{ color:#B4BDC9; }
+
+.card-authorship{
+    display:inline-flex; align-items:center; gap:8px; padding:5px 12px; border-radius:999px;
+    background:var(--surface-3); color:var(--text-light); font-size:12px; margin-bottom:16px;
+}
+
+.modal-section{ margin-top:20px; }
+.section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.10em; color:var(--text-muted); font-weight:700; margin-bottom:8px; }
+.section-hint{ color:var(--text-light); font-size:12.5px; margin-bottom:8px; }
+
+.modal input[type=text], .modal input[type=date], .modal textarea, .modal select{
+    width:100%; border:1px solid var(--border); background:var(--surface-2); border-radius:12px;
+    padding:10px 13px; font-size:13.5px; transition:var(--transition);
+}
+.modal textarea{ min-height:70px; resize:vertical; }
+.modal input:focus, .modal textarea:focus, .modal select:focus{
+    outline:none; border-color:var(--primary); background:var(--surface); box-shadow: 0 0 0 4px rgba(91,124,250,.12);
+}
+
+.inline-add{ display:flex; gap:12px; margin-top:12px; }
+.inline-add input{ flex:1; }
+.inline-add button, .modal-primary-btn{
+    all:unset; cursor:pointer; background:var(--primary); color:white; padding:13px 22px;
+    border-radius:14px; font-weight:700; transition:var(--transition); text-align:center;
+}
+.inline-add button:hover, .modal-primary-btn:hover{ background:var(--primary-hover); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+.checklist-progress-row{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.checklist-progress-row span{ font-size:13px; font-weight:600; color:var(--text-light); }
+.checklist-progress-bar{ flex:1; height:10px; border-radius:999px; overflow:hidden; background:var(--surface-3); }
+.checklist-progress-bar .fill{ height:100%; border-radius:999px; background:var(--success); transition:.35s; }
+
+.checklist-item{ display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:8px; border-radius:14px; transition:var(--transition); }
+.checklist-item:hover{ background:var(--surface-3); }
+.checklist-item input[type=checkbox]{ width:18px; height:18px; accent-color:var(--primary); }
+.checklist-item span{ flex:1; font-size:14px; }
+.checklist-item span.done{ color:var(--text-muted); text-decoration:line-through; }
+
+.label-list{ display:flex; flex-direction:column; gap:10px; }
+
+.label-row-item{ display:flex; align-items:center; gap:12px; padding:14px; border-radius:14px; transition:var(--transition); cursor: pointer; }
+.label-row-item:hover{ background:var(--surface-3); }
+.label-row-item.unselected{ opacity:.45; }
+.label-row-item.unselected:hover{ opacity:.85; }
+
+.label-check{ width:22px; height:22px; border-radius:8px; }
+
+.swatch-row{ display:flex; gap:10px; flex-wrap:wrap; margin:12px 0; }
+.swatch{ width:28px; height:28px; border-radius:50%; border:3px solid transparent; transition:var(--transition); cursor:pointer; padding: 0; }
+.swatch:hover{ transform:scale(1.15); }
+.swatch.selected{ border-color:#23272F; }
+
+.attachment-item{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; transition:var(--transition); }
+.attachment-item:hover{ background:var(--surface-3); }
+.attachment-item a{ flex:1; color:var(--primary); font-weight:600; }
+
+.modal-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:34px; padding-top:24px; border-top:1px solid var(--border); }
+
+.delete-card-btn{ all:unset; cursor:pointer; color:var(--text-muted); font-weight:700; transition:var(--transition); }
+.delete-card-btn:hover, .delete-card-btn:focus-visible{ color:var(--danger-hover); }
+
+.file-upload-label{
+    cursor:pointer; display:inline-flex; align-items:center; gap:10px; padding:12px 18px;
+    border-radius:14px; border:2px dashed var(--border); transition:var(--transition);
+}
+.file-upload-label:hover{ border-color:var(--primary); color:var(--primary); background:#F7F9FF; }
+
+@keyframes modalOpen{ from{ opacity:0; transform: translateY(25px) scale(.96); } to{ opacity:1; transform: translateY(0) scale(1); } }
+@keyframes fadeBackdrop{ from{ opacity:0; } to{ opacity:1; } }
+
+.loading-msg, .empty-state{ display:flex; justify-content:center; align-items:center; flex-direction:column; gap:14px; padding:80px 20px; color:var(--text-muted); font-size:15px; }
+
+/* ---------- Settings page ---------- */
+.settings-wrap{ padding:32px 40px; max-width:640px; }
+.settings-title{ font-size:24px; font-weight:700; color:var(--text); margin-bottom:28px; }
+.settings-section{ margin-bottom:32px; padding-bottom:32px; border-bottom:1px solid var(--border); }
+.settings-section:last-child{ border-bottom:none; }
+.settings-toggle-row{ display:flex; align-items:center; gap:10px; font-size:14px; font-weight:500; color:var(--text); cursor:pointer; }
+.settings-toggle-row input[type=checkbox]{ width:36px; height:20px; accent-color:var(--primary); cursor:pointer; }
+.settings-board-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.settings-board-color{ width:16px; height:16px; border-radius:50%; flex-shrink:0; }
+.settings-board-name{
+    flex:1; height:40px; border:1px solid var(--border); border-radius:10px; padding:0 12px;
+    font-size:13.5px; font-family:inherit; background:var(--surface-2); transition:var(--transition);
+}
+.settings-board-name:focus{ outline:none; border-color:var(--primary); background:var(--surface); }
+.settings-save-status{ font-size:12px; color:var(--success); font-weight:600; min-width:44px; }
+
+/* ---------- Auth gate ---------- */
+.auth-gate{
+    display:flex; align-items:center; justify-content:center; min-height:100vh;
+    padding:20px;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(76,110,245,.14), transparent 48%),
+      radial-gradient(circle at 82% 78%, rgba(201,124,109,.16), transparent 48%),
+      var(--bg);
+}
+.auth-card{
+    width:100%; max-width:380px; background:var(--surface); border-radius:20px;
+    padding:36px 32px; box-shadow:var(--shadow-lg); text-align:center;
+}
+.auth-card h1{ font-size:20px; font-weight:700; color:var(--text); margin-bottom:8px; }
+.auth-card p{ font-size:13.5px; color:var(--text-light); margin-bottom:20px; }
+.auth-card input[type=email], .auth-card input[type=password]{
+    width:100%; height:44px; border:1px solid var(--border); border-radius:12px;
+    padding:0 14px; font-size:14px; font-family:inherit; background:var(--surface-2);
+    color:var(--text); margin-bottom:12px; transition:var(--transition);
+}
+.auth-card input[type=email]:focus, .auth-card input[type=password]:focus{ outline:none; border-color:var(--primary); background:var(--surface); box-shadow:0 0 0 4px rgba(91,124,250,.12); }
+.auth-status{ font-size:12.5px; margin-top:12px; color:var(--text-muted); min-height:18px; }
+.auth-status.success{ color:var(--success); }
+.auth-status.error{ color:var(--danger); }
+.auth-toggle-row{ margin-top:10px; }
+.auth-toggle-row a{ font-size:12.5px; color:var(--primary); text-decoration:none; }
+.auth-toggle-row a:hover{ text-decoration:underline; }
+
+/* ---------- Undo toast ---------- */
+.undo-toast{
+    position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+    background:var(--text); color:var(--text-inverse); padding:13px 16px 13px 20px;
+    border-radius:12px; display:flex; align-items:center; gap:16px; font-size:13.5px;
+    box-shadow:var(--shadow-lg); z-index:10001; animation:toastIn .25s ease;
+}
+@keyframes toastIn{ from{ opacity:0; transform:translateX(-50%) translateY(10px); } to{ opacity:1; transform:translateX(-50%) translateY(0); } }
+.undo-toast button{
+    all:unset; cursor:pointer; font-weight:700; color:var(--primary-hover); padding:4px 8px; border-radius:6px;
+    background:rgba(255,255,255,.12); transition:var(--transition);
+}
+.undo-toast button:hover{ background:rgba(255,255,255,.2); }
+
+/* ---------- Trash page ---------- */
+.trash-header-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.trash-header-row .settings-title{ margin-bottom:0; }
+.trash-item{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 4px; border-bottom:1px solid var(--divider);
+}
+.trash-item:last-child{ border-bottom:none; }
+.trash-item-info{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.trash-item-title{ font-size:14px; font-weight:600; color:var(--text); }
+.trash-item-meta{ font-size:12px; font-weight:500; color:var(--text-muted); margin-left:4px; }
+.trash-item-date{ font-size:12px; color:var(--text-muted); margin-top:2px; }
+.trash-item-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+.label-edit-actions{ display:flex; gap:10px; }
+.label-edit-actions button{
+    all:unset; cursor:pointer; padding:9px 16px; border-radius:12px; background:var(--surface-3);
+    font-size:13px; font-weight:600; transition:var(--transition);
+}
+.label-edit-actions button:hover{ transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+.label-edit-actions .danger{ color:var(--danger); }
+
+.new-label-block{ margin-top:20px; padding-top:20px; border-top:1px solid var(--border); }
+.new-label-block input{ margin-bottom:14px; }
+
+/* ---------- Label chips (compact, Trello-style) ---------- */
+.label-chips-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.label-pill{ font-size:12px; font-weight:700; padding:6px 12px; border-radius:6px; }
+.add-label-btn{
+    all:unset; cursor:pointer; width:30px; height:30px; display:flex; align-items:center;
+    justify-content:center; border-radius:8px; background:var(--surface-3); color:var(--text-light);
+    font-size:16px; font-weight:700; transition:var(--transition);
+}
+.add-label-btn:hover{ background:var(--border-hover); color:var(--text); }
+
+/* ---------- Floating popovers (labels, card quick-menu) ---------- */
+.label-popover{
+    position:fixed; z-index:10000; background:var(--surface); border-radius:14px;
+    box-shadow: var(--shadow-lg); padding:16px; width:280px;
+    max-height:60vh; display:flex; flex-direction:column;
+    animation:dropdownOpen .18s ease;
+}
+.popover-header{
+    display:flex; align-items:center; justify-content:space-between; font-size:12px;
+    font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em;
+    margin-bottom:10px; flex-shrink:0;
+}
+.popover-close-btn{ all:unset; cursor:pointer; color:var(--text-light); padding:3px 7px; border-radius:6px; }
+.popover-close-btn:hover{ background:var(--surface-3); color:var(--text); }
+.popover-search{
+    width:100%; height:38px; border:1px solid var(--border); border-radius:10px; padding:0 12px;
+    font-size:13px; margin-bottom:10px; background:var(--surface-2); flex-shrink:0;
+}
+.popover-search:focus{ outline:none; border-color:var(--primary); background:var(--surface); }
+.label-popover .label-list{ overflow-y:auto; flex:1; margin-bottom:8px; min-height:40px; }
+.label-popover .new-label-block{ flex-shrink:0; }
+
+/* ---------- Assignees (responsáveis) ---------- */
+.assignee-list{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.assignee-chip{
+    display:flex; align-items:center; gap:6px; padding:5px 6px 5px 10px;
+    border-radius:999px; background:var(--surface-3); font-size:13px; font-weight:600; color:var(--text);
+}
+.assignee-chip .avatar{
+    width:20px; height:20px; border-radius:50%; background:var(--primary); color:white;
+    display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0;
+}
+.assignee-chip .remove-btn{ all:unset; cursor:pointer; opacity:.55; font-size:13px; padding:2px 4px; transition:var(--transition); }
+.assignee-chip .remove-btn:hover{ opacity:1; color:var(--danger); }
+
+/* ---------- Comments ---------- */
+.comment-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:12px; flex:1; overflow-y:auto; min-height:60px; }
+.comment-item{ display:flex; gap:10px; }
+.comment-avatar{
+    width:28px; height:28px; border-radius:50%; background:var(--primary); color:white;
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;
+}
+.comment-body{ flex:1; background:var(--surface-3); border-radius:14px; padding:9px 13px; }
+.comment-meta{ display:flex; align-items:baseline; gap:8px; margin-bottom:2px; }
+.comment-author{ font-size:13px; font-weight:700; color:var(--text); }
+.comment-time{ font-size:11px; color:var(--text-muted); }
+.comment-text{ font-size:13.5px; color:var(--text); line-height:1.5; white-space:pre-wrap; }
+.comment-empty{ font-size:13px; color:var(--text-muted); padding:6px 0 12px; }
+
+.comment-composer{ display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
+.comment-composer textarea{
+    width:100%; min-height:76px; resize:vertical; font-family:inherit; font-size:13.5px;
+    border:1px solid var(--border); border-radius:12px; padding:10px 13px;
+    background:var(--surface); transition:var(--transition);
+}
+.comment-composer textarea:focus{
+    outline:none; border-color:var(--primary); box-shadow: 0 0 0 4px rgba(91,124,250,.12);
+}
+.comment-composer button{ align-self:flex-end; }
+
+.del-btn{ all: unset; cursor: pointer; opacity:.55; transition:var(--transition); padding: 3px 7px; border-radius: 6px; }
+.del-btn:hover{ opacity:1; color:var(--danger); }
+
+button:hover{ transition:var(--transition); }
+input{ transition:var(--transition); }
+textarea{ transition:var(--transition); }
+select{ transition:var(--transition); }
+
+.overview-board-header, .column, .filter-bar input{ backdrop-filter:blur(12px); }
+
+::selection{ background:#5B7CFA; color:white; }
+
+button:focus-visible{ outline:none; box-shadow: 0 0 0 4px rgba(91,124,250,.18); }
+button:disabled{ opacity:.5; cursor:not-allowed; pointer-events:none; }
+input:focus-visible{ outline:none; }
+textarea:focus-visible{ outline:none; }
+
+.card, .column, button, input, textarea, select, .modal, .overview-board-header, .mini-card{
+    transition: .25s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes dropdownOpen{ from{ opacity:0; transform: translateY(-8px) scale(.96); } to{ opacity:1; transform: translateY(0) scale(1); } }
+
+@media (max-width:1200px){
+    .board-inner{ padding:24px; }
+    .overview-wrap{ padding:24px; }
+    .board-banner{ padding:28px; }
+    .modal{ max-width:95%; }
+}
+@media (max-width:900px){
+    .app-shell{ flex-direction:column; }
+    .sidebar{
+        width:100%; height:auto; position:static;
+        flex-direction:row; align-items:center; flex-wrap:wrap;
+        padding:14px 16px; gap:10px;
+        border-right:none; border-bottom:1px solid var(--border);
+    }
+    .sidebar-brand{ padding:0; margin-right:auto; }
+    .sidebar-brand h1{ font-size:15px; }
+    .sidebar-nav{ flex-direction:row; overflow-x:auto; flex:0 1 auto; gap:6px; }
+    .sidebar-nav button{ border-left:none; border-bottom:3px solid transparent; padding:8px 10px; }
+    .sidebar-nav button.active{ border-bottom-color:var(--tab-color,var(--primary)); }
+    .sidebar-footer{ flex-direction:row; border-top:none; margin-top:0; padding:0; gap:8px; }
+    .user-badge{ width:auto; }
+    .board-banner{ flex-direction:column; align-items:flex-start; }
+    .board-banner h1{ font-size:26px; }
+    .column{ flex:1 0 240px; }
+}
+@media (max-width:600px){
+    .board-inner{ padding:16px; }
+    .overview-wrap{ padding:16px; }
+    .modal{ border-radius:var(--radius-lg); padding:22px; }
+    .modal .title-input{ font-size:24px; }
+    .filter-bar input{ width:100%; }
+}
+
+.fade-in{ animation:fadeIn .25s ease; }
+.scale-in{ animation:scaleIn .25s ease; }
+.shadow-hover:hover{ box-shadow:var(--shadow-lg); }
+.radius-xl{ border-radius:var(--radius-xl); }
+
+@keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes scaleIn{ from{ opacity:0; transform:scale(.96); } to{ opacity:1; transform:scale(1); } }
+
+body.dark{
+    /* ===== PRIMARY (levemente mais clara para contraste em fundo escuro) ===== */
+    --primary:#6B8CFF; --primary-hover:#839DFF; --primary-active:#4F63D2; --primary-disabled:#33406B;
+
+    /* ===== NEUTRALS / SURFACES ===== */
+    --bg:#0F1420; --surface:#1B2333; --surface-2:#212B3D; --surface-3:#2A3549;
+    --surface-elevation-1: var(--surface); --surface-elevation-2: var(--surface-2); --surface-elevation-3: var(--surface-3);
+    --card-bg: var(--surface);
+    --border:#323F56; --border-hover:#425068; --divider:#29334A;
+    --hover-bg: rgba(255,255,255,.045);
+    --overlay: rgba(0,0,0,.55);
+
+    /* ===== TEXT LEVELS ===== */
+    --text:#EDF0F5; --text-secondary:#B4BECF; --text-light:#B4BECF; --text-muted:#7C8AA0;
+    --text-disabled:#4A5568; --text-placeholder:#5C6B82; --text-inverse:#12151C;
+
+    /* ===== STATES ===== */
+    --success:#3DD68C; --success-bg:rgba(61,214,140,.12); --success-border:rgba(61,214,140,.35); --success-hover:#2FB874;
+    --warning:#FFC773; --warning-bg:rgba(255,199,115,.14); --warning-border:rgba(255,199,115,.35); --warning-hover:#F0AE4E;
+    --danger:#FF9B9B;  --danger-bg:rgba(255,107,107,.14);  --danger-border:rgba(255,107,107,.35);  --danger-hover:#FF7A7A;
+    --info:#6FB1FF;    --info-bg:rgba(111,177,255,.12);    --info-border:rgba(111,177,255,.35);    --info-hover:#8FC4FF;
+    --neutral:#9AA5B8; --neutral-bg:rgba(154,165,184,.10); --neutral-border:rgba(154,165,184,.28); --neutral-hover:#B7C0D1;
+
+    /* ===== GLASS / OVERLAY ===== */
+    --sidebar-bg: rgba(27,35,51,.88);
+    --column-bg: rgba(255,255,255,.035);
+    --glass-btn-bg: rgba(255,255,255,.08);
+    --glass-btn-bg-soft: rgba(255,255,255,.05);
+
+    /* ===== SHADOWS (mais fortes, já que sombra clara some no escuro) ===== */
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+    --shadow-sm: 0 4px 14px rgba(0,0,0,.34);
+    --shadow-md: 0 10px 26px rgba(0,0,0,.4);
+    --shadow-lg: 0 20px 48px rgba(0,0,0,.5);
+    --shadow-xl: 0 32px 70px rgba(0,0,0,.55);
+
+    /* ===== OPACITY TOKENS ===== */
+    --opacity-glass: .04;
+    --opacity-overlay: .55;
+    --opacity-hover: .045;
+    --opacity-focus: .22;
+    --opacity-dropdown-shadow: .45;
+    --opacity-modal-shadow: .5;
+    --opacity-tooltip-bg: .95;
+}
+/* board-banner e card-ghost já usam tokens de sombra que trocam sozinhos por tema */
+
+/*==================================================
+    PATCH DE COMPATIBILIDADE
+    (adicionado para preservar funcionalidades
+    que dependiam destas classes, não incluídas
+    no arquivo original)
+===================================================*/
+
+/* Indicador de seleção da etiqueta precisa ser visível (borda + centralização do ✓) */
+.label-check{
+    border: 1.5px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Modo de edição de etiqueta precisa empilhar em coluna, não em linha */
+.label-row-item.editing{
+    flex-direction: column;
+    align-items: stretch;
+    cursor: default;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+}
+.label-row-item.editing:hover{ background: var(--surface-2); }
+
+/* Botão de editar (lápis) dentro da etiqueta */
+.label-edit-btn{
+    all: unset;
+    cursor: pointer;
+    opacity: .65;
+    padding: 4px 7px;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+.label-edit-btn:hover{ opacity: 1; background: rgba(0,0,0,.08); }
+
+/* Nome da etiqueta precisa crescer para empurrar o botão de editar para a direita */
+.label-row-item .label-name{ flex: 1; }
+
+/* Indicador de "cor padrão" no seletor de cor da coluna */
+.column-menu-swatches .swatch-none{
+    background: var(--surface-2);
+    border: 1px solid var(--border-hover);
+    position: relative;
+}
+.column-menu-swatches .swatch-none::after{
+    content: '';
+    position: absolute;
+    left: 4px; right: 4px; top: 50%;
+    height: 1.5px;
+    background: var(--text-muted);
+    transform: rotate(-45deg);
+}
+
+</style>
+</head>
+<body>
+
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card" id="auth-card"></div>
+</div>
+
+<div class="app-shell" id="app-shell" style="display:none;">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Kanban Família Engel</h1>
+    </div>
+    <nav class="sidebar-nav" id="tabs"></nav>
+    <div class="sidebar-footer">
+      <button class="user-badge" id="user-badge" onclick="changeUserName()">👤</button>
+      <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Conectado</span></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="loading-msg">Carregando...</div>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = "https://kdakbvisjexrewvaujpd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_imzD--gBcewAMJvZOqTqnA_CwJ2jNOu";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const BOARD_STYLE = {
+  pessoal:      { color: '#6366f1', bg: '#eef0fd', dark: '#3634a3' },
+  casa_repouso: { color: '#10b981', bg: '#e7f8f2', dark: '#0a6647' },
+  casal:        { color: '#C97C6D', bg: '#FBEBE8', dark: '#8F4A3D' },
+};
+
+const BOARD_ICONS = {
+  pessoal: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-1a7 7 0 0 1 14 0v1"></path></svg>`,
+  casa_repouso: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"></path><path d="M12 14.5s-2-1.7-2-3.2a2 2 0 0 1 3.6-1.2 2 2 0 0 1 3.6 1.2c0 1.5-2 3.2-2 3.2z"></path></svg>`,
+  casal: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6a4.6 4.6 0 0 0-7.8-3.3L12 6.4l-1-1.1a4.6 4.6 0 1 0-6.6 6.4l1 1L12 19.4l6.6-6.7 1-1a4.6 4.6 0 0 0 1.2-3.1z"></path></svg>`,
+};
+const GENERIC_BOARD_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>`;
+
+function boardIcon(slug) { return BOARD_ICONS[slug] || GENERIC_BOARD_ICON; }
+
+function darkenColor(hex, factor) {
+  const c = hex.replace('#', '');
+  let r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+  r = Math.round(r * (1 - factor)); g = Math.round(g * (1 - factor)); b = Math.round(b * (1 - factor));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+function boardColor(board) { return (BOARD_STYLE[board.slug] || {}).color || board.color || '#64748B'; }
+function boardBgColor(board) { return (BOARD_STYLE[board.slug] || {}).bg || boardColor(board) + '22'; }
+function boardDarkColor(board) { return (BOARD_STYLE[board.slug] || {}).dark || darkenColor(boardColor(board), 0.35); }
+
+function accentStyle(board) {
+  return `--accent:${boardColor(board)};--accent-bg:${boardBgColor(board)};--accent-dark:${boardDarkColor(board)};`;
+}
+
+const LABEL_PALETTE = ['#4C6EF5','#8B5CF6','#EC4899','#EF4444','#F97316','#EAB308','#22C55E','#14B8A6','#64748B'];
+const COLOR_NAMES = {
+  '#4C6EF5': 'azul', '#8B5CF6': 'roxo', '#EC4899': 'rosa', '#EF4444': 'vermelho',
+  '#F97316': 'laranja', '#EAB308': 'amarelo', '#22C55E': 'verde', '#14B8A6': 'turquesa',
+  '#64748B': 'cinza',
+};
+function colorName(hex) { return COLOR_NAMES[hex] || 'etiqueta'; }
+
+function contrastText(hex) {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
+  const yiq = (r*299 + g*587 + b*114) / 1000;
+  return yiq >= 150 ? '#241f18' : '#ffffff';
+}
+
+function getUserName() {
+  return localStorage.getItem('kanban_user_name') || null;
+}
+function ensureUserName() {
+  let name = getUserName();
+  if (!name) {
+    name = (prompt('Como você quer ser identificado nos cards? (ex: Felipe, Ana)') || '').trim() || 'Alguém';
+    localStorage.setItem('kanban_user_name', name);
+    updateUserBadge();
+  }
+  return name;
+}
+function changeUserName() {
+  const current = getUserName() || '';
+  const name = prompt('Seu nome:', current);
+  if (name && name.trim()) {
+    localStorage.setItem('kanban_user_name', name.trim());
+    updateUserBadge();
+  }
+}
+function updateUserBadge() {
+  const el = document.getElementById('user-badge');
+  if (!el) return;
+  const name = getUserName();
+  el.textContent = name ? `👤 ${name}` : '👤 Definir nome';
+}
+
+function isDarkModeOn() {
+  return localStorage.getItem('kanban_dark_mode') === '1';
+}
+
+function applyDarkModePreference() {
+  document.body.classList.toggle('dark', isDarkModeOn());
+}
+
+function toggleDarkMode(checked) {
+  localStorage.setItem('kanban_dark_mode', checked ? '1' : '0');
+  applyDarkModePreference();
+}
+
+function saveUserNameFromSettings() {
+  const input = document.getElementById('settings-username');
+  const name = input.value.trim();
+  if (!name) return;
+  localStorage.setItem('kanban_user_name', name);
+  updateUserBadge();
+  const status = document.getElementById('settings-username-status');
+  if (status) {
+    status.textContent = 'Salvo!';
+    setTimeout(() => { status.textContent = ''; }, 1500);
+  }
+}
+
+async function saveBoardName(boardId) {
+  const input = document.getElementById(`board-name-${boardId}`);
+  const name = input.value.trim();
+  if (!name) return;
+  setSync('saving');
+  const { error } = await sb.from('boards').update({ name }).eq('id', boardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  const board = state.boards.find(b => b.id === boardId);
+  board.name = name;
+  setSync('ok');
+  renderTabs();
+  const status = document.getElementById(`board-name-status-${boardId}`);
+  if (status) {
+    status.textContent = 'Salvo!';
+    setTimeout(() => { status.textContent = ''; }, 1500);
+  }
+}
+
+function selectBoardSwatch(el) {
+  document.querySelectorAll('#new-board-swatches .swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function slugify(name) {
+  return 'custom_' + name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) + '_' + Date.now();
+}
+
+async function createBoard(name, color) {
+  const slug = slugify(name);
+  setSync('saving');
+  const { data, error } = await sb.from('boards').insert({ name, slug, color }).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return null; }
+  state.boards.push(data);
+  state.columns[data.id] = [];
+  state.cards[data.id] = [];
+  state.labels[data.id] = [];
+  const defaultCols = ['A Fazer', 'Fazendo', 'Feito'];
+  const results = await Promise.all(defaultCols.map((n, i) => sb.from('columns').insert({ board_id: data.id, name: n, position: i }).select().single()));
+  results.forEach(r => { if (r.data) state.columns[data.id].push(r.data); });
+  setSync('ok');
+  renderTabs();
+  return data;
+}
+
+async function addBoardFromSettings() {
+  const nameInput = document.getElementById('new-board-name');
+  const name = nameInput.value.trim();
+  if (!name) return;
+  const selectedSwatch = document.querySelector('#new-board-swatches .swatch.selected');
+  const color = selectedSwatch ? selectedSwatch.dataset.color : LABEL_PALETTE[0];
+  const board = await createBoard(name, color);
+  if (!board) return;
+  nameInput.value = '';
+  render();
+}
+
+function showNewBoardPopover(event) {
+  closeNewBoardPopover();
+  closeColumnMenu(); closeLabelPopover(); closeCardContextMenu(); closeFilterPopover();
+  const swatches = LABEL_PALETTE.map((c, i) => `<button class="swatch ${i === 0 ? 'selected' : ''}" data-color="${c}" style="background:${c}" onclick="selectSidebarBoardSwatch(this)"></button>`).join('');
+  const html = `<div class="label-popover" id="floating-new-board-popover" style="width:250px;">
+    <div class="popover-header"><span>Novo quadro</span><button class="popover-close-btn" onclick="closeNewBoardPopover()">×</button></div>
+    <input type="text" class="popover-search" id="sidebar-new-board-name" placeholder="Nome do quadro..." style="margin-bottom:10px;">
+    <div class="swatch-row" id="sidebar-new-board-swatches">${swatches}</div>
+    <button class="modal-primary-btn" style="width:100%;" onclick="createBoardFromSidebar()">Criar quadro</button>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const popover = document.getElementById('floating-new-board-popover');
+  const rect = event.currentTarget.getBoundingClientRect();
+  let left = rect.right + 10, top = rect.top;
+  const w = popover.offsetWidth, h = popover.offsetHeight;
+  if (left + w > window.innerWidth - 8) left = rect.left;
+  if (top + h > window.innerHeight - 8) top = window.innerHeight - h - 8;
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+  document.getElementById('sidebar-new-board-name').focus();
+}
+
+function closeNewBoardPopover() {
+  const el = document.getElementById('floating-new-board-popover');
+  if (el) el.remove();
+}
+
+function selectSidebarBoardSwatch(el) {
+  document.querySelectorAll('#sidebar-new-board-swatches .swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function createBoardFromSidebar() {
+  const nameInput = document.getElementById('sidebar-new-board-name');
+  const name = nameInput.value.trim();
+  if (!name) return;
+  const selectedSwatch = document.querySelector('#sidebar-new-board-swatches .swatch.selected');
+  const color = selectedSwatch ? selectedSwatch.dataset.color : LABEL_PALETTE[0];
+  const board = await createBoard(name, color);
+  if (!board) return;
+  closeNewBoardPopover();
+  switchView(board.id);
+}
+
+async function deleteBoardPrompt(boardId) {
+  const board = state.boards.find(b => b.id === boardId);
+  if (!board) return;
+  if (state.boards.length <= 1) { alert('Você precisa manter pelo menos um quadro.'); return; }
+  if (!confirm(`Excluir o quadro "${board.name}"? Ele vai para a lixeira por 30 dias, junto com tudo que tem dentro. Dá pra desfazer logo em seguida.`)) return;
+  const now = new Date().toISOString();
+  setSync('saving');
+  const { error } = await sb.from('boards').update({ deleted_at: now }).eq('id', boardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  board.deleted_at = now;
+  state.boards = state.boards.filter(b => b.id !== boardId);
+  delete state.columns[boardId];
+  delete state.cards[boardId];
+  delete state.labels[boardId];
+  setSync('ok');
+  if (state.view === boardId) { state.view = 'overview'; }
+  renderTabs();
+  render();
+  showUndoToast(`Quadro "${board.name}" excluído`, async () => {
+    setSync('saving');
+    await sb.from('boards').update({ deleted_at: null }).eq('id', boardId);
+    board.deleted_at = null;
+    state.boards.push(board);
+    const [{ data: columns }, { data: cards }, { data: labels }] = await Promise.all([
+      sb.from('columns').select('*').eq('board_id', boardId).is('deleted_at', null).order('position'),
+      sb.from('cards').select('*, card_labels(label_id), checklist_items(id, done), attachments(id), card_comments(id)').eq('board_id', boardId).is('deleted_at', null).order('position'),
+      sb.from('labels').select('*').eq('board_id', boardId),
+    ]);
+    state.columns[boardId] = columns || [];
+    state.cards[boardId] = cards || [];
+    state.labels[boardId] = labels || [];
+    setSync('ok');
+    renderTabs();
+    render();
+  });
+}
+
+function renderSettings() {
+  const boardsHtml = state.boards.map(b => {
+    const color = boardColor(b);
+    return `<div class="settings-board-row">
+      <span class="settings-board-color" style="background:${color}"></span>
+      <input type="text" class="settings-board-name" id="board-name-${b.id}" value="${escapeHtml(b.name)}">
+      <button class="modal-primary-btn" onclick="saveBoardName('${b.id}')">Salvar</button>
+      <span class="settings-save-status" id="board-name-status-${b.id}"></span>
+      <button class="del-btn" title="Excluir quadro" onclick="deleteBoardPrompt('${b.id}')">🗑</button>
+    </div>`;
+  }).join('');
+
+  const newBoardSwatches = LABEL_PALETTE.map((c, i) => `<button class="swatch ${i === 0 ? 'selected' : ''}" data-color="${c}" style="background:${c}" onclick="selectBoardSwatch(this)"></button>`).join('');
+
+  return `<div class="settings-wrap">
+    <h1 class="settings-title">Configurações</h1>
+
+    <div class="settings-section">
+      <div class="section-label">Seu nome</div>
+      <div class="section-hint">Esse nome aparece nos cards que você cria, edita e comenta.</div>
+      <div class="inline-add">
+        <input type="text" id="settings-username" value="${escapeHtml(getUserName() || '')}" placeholder="Seu nome...">
+        <button onclick="saveUserNameFromSettings()">Salvar</button>
+        <span class="settings-save-status" id="settings-username-status"></span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-label">Aparência</div>
+      <label class="settings-toggle-row">
+        <input type="checkbox" id="dark-mode-toggle" ${isDarkModeOn() ? 'checked' : ''} onchange="toggleDarkMode(this.checked)">
+        Modo escuro
+      </label>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-label">Quadros</div>
+      <div class="section-hint">Renomeie ou exclua um quadro existente.</div>
+      ${boardsHtml}
+
+      <div class="new-label-block">
+        <div class="section-hint" style="margin-top:0;">Criar novo quadro</div>
+        <input type="text" id="new-board-name" placeholder="Nome do quadro...">
+        <div class="swatch-row" id="new-board-swatches">${newBoardSwatches}</div>
+        <button class="modal-primary-btn" onclick="addBoardFromSettings()">Criar quadro</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-label">Conta</div>
+      <div class="section-hint">Você está conectado como <strong>${escapeHtml(currentAuthEmail || '')}</strong>.</div>
+      <button class="delete-card-btn" onclick="signOutUser()">Sair da conta</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- Lixeira (trash) ---------- */
+function renderTrashShell() {
+  return `<div class="settings-wrap">
+    <div class="trash-header-row">
+      <h1 class="settings-title">Lixeira</h1>
+      <button class="delete-card-btn" onclick="emptyTrash()">Esvaziar lixeira</button>
+    </div>
+    <div class="section-hint" style="margin-bottom:20px;">Itens excluídos ficam aqui por 30 dias antes de serem apagados de vez.</div>
+    <div id="trash-content" class="loading-msg">Carregando...</div>
+  </div>`;
+}
+
+async function loadTrashContent() {
+  const container = document.getElementById('trash-content');
+  if (!container) return;
+  const [{ data: deletedBoards, error: boardErr }, { data: deletedColumns, error: colErr }, { data: deletedCards, error: cardErr }] = await Promise.all([
+    sb.from('boards').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }),
+    sb.from('columns').select('*, boards(name)').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }),
+    sb.from('cards').select('*, boards(name)').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }),
+  ]);
+  if (boardErr || colErr || cardErr) {
+    container.innerHTML = `<div class="empty-state">Erro ao carregar a lixeira.</div>`;
+    return;
+  }
+  if (!deletedBoards.length && !deletedColumns.length && !deletedCards.length) {
+    container.innerHTML = `<div class="empty-state">A lixeira está vazia.</div>`;
+    return;
+  }
+  const boardsHtml = deletedBoards.map(b => `
+    <div class="trash-item">
+      <div class="trash-item-info">
+        <div class="trash-item-title">🗃 ${escapeHtml(b.name)} <span class="trash-item-meta">quadro</span></div>
+        <div class="trash-item-date">Excluído ${formatCommentTime(b.deleted_at)}</div>
+      </div>
+      <div class="trash-item-actions">
+        <button class="modal-primary-btn" onclick="restoreBoardFromTrash('${b.id}')">Restaurar</button>
+        <button class="delete-card-btn" onclick="purgeBoardNow('${b.id}')">Excluir definitivamente</button>
+      </div>
+    </div>`).join('');
+  const columnsHtml = deletedColumns.map(c => `
+    <div class="trash-item">
+      <div class="trash-item-info">
+        <div class="trash-item-title">📋 ${escapeHtml(c.name)} <span class="trash-item-meta">coluna · ${escapeHtml(c.boards?.name || '')}</span></div>
+        <div class="trash-item-date">Excluída ${formatCommentTime(c.deleted_at)}</div>
+      </div>
+      <div class="trash-item-actions">
+        <button class="modal-primary-btn" onclick="restoreColumnFromTrash('${c.id}')">Restaurar</button>
+        <button class="delete-card-btn" onclick="purgeColumnNow('${c.id}')">Excluir definitivamente</button>
+      </div>
+    </div>`).join('');
+  const cardsHtml = deletedCards.map(c => `
+    <div class="trash-item">
+      <div class="trash-item-info">
+        <div class="trash-item-title">🗂 ${escapeHtml(c.title)} <span class="trash-item-meta">card · ${escapeHtml(c.boards?.name || '')}</span></div>
+        <div class="trash-item-date">Excluído ${formatCommentTime(c.deleted_at)}</div>
+      </div>
+      <div class="trash-item-actions">
+        <button class="modal-primary-btn" onclick="restoreCardFromTrash('${c.id}')">Restaurar</button>
+        <button class="delete-card-btn" onclick="purgeCardNow('${c.id}')">Excluir definitivamente</button>
+      </div>
+    </div>`).join('');
+  container.innerHTML = boardsHtml + columnsHtml + cardsHtml;
+}
+
+async function restoreCardFromTrash(cardId) {
+  setSync('saving');
+  const { data, error } = await sb.from('cards').update({ deleted_at: null }).eq('id', cardId).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  if (state.cards[data.board_id] && !state.cards[data.board_id].some(c => c.id === cardId)) {
+    data.card_labels = data.card_labels || [];
+    data.checklist_items = data.checklist_items || [];
+    data.attachments = data.attachments || [];
+    data.card_comments = data.card_comments || [];
+    data.assignees = data.assignees || [];
+    state.cards[data.board_id].push(data);
+  }
+  setSync('ok');
+  loadTrashContent();
+}
+
+async function restoreColumnFromTrash(columnId) {
+  setSync('saving');
+  const { data: colRow, error: fetchErr } = await sb.from('columns').select('*').eq('id', columnId).single();
+  if (fetchErr || !colRow) { setSync('error'); return; }
+  const ts = colRow.deleted_at;
+  const { error } = await sb.from('columns').update({ deleted_at: null }).eq('id', columnId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  const { data: cardsToRestore } = await sb.from('cards').select('*').eq('column_id', columnId).eq('deleted_at', ts);
+  if (cardsToRestore && cardsToRestore.length) {
+    await Promise.all(cardsToRestore.map(c => sb.from('cards').update({ deleted_at: null }).eq('id', c.id)));
+  }
+  colRow.deleted_at = null;
+  if (state.columns[colRow.board_id] && !state.columns[colRow.board_id].some(c => c.id === columnId)) {
+    state.columns[colRow.board_id].push(colRow);
+  }
+  (cardsToRestore || []).forEach(c => {
+    c.deleted_at = null;
+    c.card_labels = []; c.checklist_items = []; c.attachments = []; c.card_comments = []; c.assignees = c.assignees || [];
+    if (state.cards[c.board_id] && !state.cards[c.board_id].some(existing => existing.id === c.id)) {
+      state.cards[c.board_id].push(c);
+    }
+  });
+  setSync('ok');
+  loadTrashContent();
+}
+
+async function purgeCardNow(cardId) {
+  if (!confirm('Excluir esse card definitivamente? Essa ação não pode ser desfeita.')) return;
+  setSync('saving');
+  const { error } = await sb.from('cards').delete().eq('id', cardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  setSync('ok');
+  loadTrashContent();
+}
+
+async function purgeColumnNow(columnId) {
+  if (!confirm('Excluir essa coluna definitivamente (e os cards que ainda estiverem nela)? Essa ação não pode ser desfeita.')) return;
+  setSync('saving');
+  const { error } = await sb.from('columns').delete().eq('id', columnId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  setSync('ok');
+  loadTrashContent();
+}
+
+async function restoreBoardFromTrash(boardId) {
+  setSync('saving');
+  const { data, error } = await sb.from('boards').update({ deleted_at: null }).eq('id', boardId).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  if (!state.boards.some(b => b.id === boardId)) {
+    state.boards.push(data);
+    const [{ data: columns }, { data: cards }, { data: labels }] = await Promise.all([
+      sb.from('columns').select('*').eq('board_id', boardId).is('deleted_at', null).order('position'),
+      sb.from('cards').select('*, card_labels(label_id), checklist_items(id, done), attachments(id), card_comments(id)').eq('board_id', boardId).is('deleted_at', null).order('position'),
+      sb.from('labels').select('*').eq('board_id', boardId),
+    ]);
+    state.columns[boardId] = columns || [];
+    state.cards[boardId] = cards || [];
+    state.labels[boardId] = labels || [];
+  }
+  setSync('ok');
+  renderTabs();
+  loadTrashContent();
+}
+
+async function purgeBoardNow(boardId) {
+  if (!confirm('Excluir esse quadro definitivamente (e tudo que tem dentro dele)? Essa ação não pode ser desfeita.')) return;
+  setSync('saving');
+  const { error } = await sb.from('boards').delete().eq('id', boardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  setSync('ok');
+  loadTrashContent();
+}
+
+async function emptyTrash() {
+  if (!confirm('Excluir tudo da lixeira definitivamente? Essa ação não pode ser desfeita.')) return;
+  setSync('saving');
+  await sb.from('cards').delete().not('deleted_at', 'is', null);
+  await sb.from('columns').delete().not('deleted_at', 'is', null);
+  await sb.from('boards').delete().not('deleted_at', 'is', null);
+  setSync('ok');
+  loadTrashContent();
+}
+
+let state = {
+  boards: [],
+  view: 'overview',
+  columns: {},   // board_id -> [columns]
+  cards: {},     // board_id -> [cards] (with labels + checklist_items + attachments count embedded)
+  labels: {},    // board_id -> [labels]
+  openCardId: null,
+  editingLabelId: null,
+  editLabelDraft: null,
+  labelPopoverSearch: '',
+  labelPopoverCtx: null,
+  filters: { search: '', memberModes: new Set(), dueModes: new Set(), labelIds: new Set() },
+  viewMode: localStorage.getItem('kanban_view_mode') || 'board',
+};
+
+function setSync(status) {
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  dot.className = 'sync-dot' + (status === 'saving' ? ' saving' : status === 'error' ? ' error' : '');
+  text.textContent = status === 'saving' ? 'Salvando...' : status === 'error' ? 'Erro ao salvar' : 'Conectado';
+  if (status === 'saving') return;
+  if (status !== 'error') setTimeout(() => { text.textContent = 'Conectado'; dot.className = 'sync-dot'; }, 800);
+}
+
+async function purgeOldTrash() {
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  try {
+    await sb.from('cards').delete().lt('deleted_at', cutoff);
+    await sb.from('columns').delete().lt('deleted_at', cutoff);
+    await sb.from('boards').delete().lt('deleted_at', cutoff);
+  } catch (e) { /* silencioso: limpeza automática não é crítica */ }
+}
+
+async function loadAll() {
+  const { data: boards, error: bErr } = await sb.from('boards').select('*').is('deleted_at', null).order('created_at');
+  if (bErr) { document.getElementById('main').innerHTML = `<div class="empty-state">Erro ao carregar quadros: ${bErr.message}</div>`; return; }
+  state.boards = boards;
+
+  for (const board of boards) {
+    const [{ data: columns }, { data: cards }, { data: labels }] = await Promise.all([
+      sb.from('columns').select('*').eq('board_id', board.id).is('deleted_at', null).order('position'),
+      sb.from('cards').select('*, card_labels(label_id), checklist_items(id, done), attachments(id), card_comments(id)').eq('board_id', board.id).is('deleted_at', null).order('position'),
+      sb.from('labels').select('*').eq('board_id', board.id),
+    ]);
+    state.columns[board.id] = columns || [];
+    state.cards[board.id] = cards || [];
+    state.labels[board.id] = labels || [];
+  }
+  renderTabs();
+  render();
+  updateUserBadge();
+  purgeOldTrash();
+}
+
+const OVERVIEW_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>`;
+const SETTINGS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
+const TRASH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  let html = `<button class="${state.view === 'overview' ? 'active' : ''}" onclick="switchView('overview')">
+    <span class="sidebar-icon">${OVERVIEW_ICON}</span>Visão geral
+  </button>`;
+  for (const board of state.boards) {
+    const color = boardColor(board);
+    html += `<button class="${state.view === board.id ? 'active' : ''}" style="--tab-color:${color}" onclick="switchView('${board.id}')">
+      <span class="sidebar-icon" style="background:${color};color:#fff">${boardIcon(board.slug)}</span>${board.name}
+    </button>`;
+  }
+  html += `<button class="sidebar-add-board-btn" onclick="showNewBoardPopover(event)">
+    <span class="sidebar-icon">+</span>Novo quadro
+  </button>`;
+  html += `<button class="${state.view === 'trash' ? 'active' : ''}" onclick="switchView('trash')" style="margin-top:auto;">
+    <span class="sidebar-icon">${TRASH_ICON}</span>Lixeira
+  </button>`;
+  html += `<button class="${state.view === 'settings' ? 'active' : ''}" onclick="switchView('settings')">
+    <span class="sidebar-icon">${SETTINGS_ICON}</span>Configurações
+  </button>`;
+  tabs.innerHTML = html;
+}
+
+function switchView(view) {
+  state.view = view;
+  state.filters = { search: '', memberModes: new Set(), dueModes: new Set(), labelIds: new Set() };
+  closeFilterPopover();
+  renderTabs();
+  render();
+}
+
+function render() {
+  const main = document.getElementById('main');
+  if (state.view === 'overview') {
+    main.innerHTML = `<div class="overview-wrap">${state.boards.map(renderOverviewBoard).join('')}</div>`;
+  } else if (state.view === 'settings') {
+    main.innerHTML = renderSettings();
+  } else if (state.view === 'trash') {
+    main.innerHTML = renderTrashShell();
+    loadTrashContent();
+  } else {
+    const board = state.boards.find(b => b.id === state.view);
+    if (!board) return;
+    main.innerHTML = renderBoardShell(board);
+    renderCurrentBoardView(board);
+    updateFilterBadge();
+  }
+}
+
+function renderCurrentBoardView(board) {
+  if (state.viewMode === 'list') renderBoardList(board);
+  else renderBoardColumns(board);
+}
+
+function setViewMode(mode) {
+  state.viewMode = mode;
+  localStorage.setItem('kanban_view_mode', mode);
+  const board = state.boards.find(b => b.id === state.view);
+  if (!board) return;
+  const main = document.getElementById('main');
+  main.innerHTML = renderBoardShell(board);
+  renderCurrentBoardView(board);
+  updateFilterBadge();
+}
+
+function filterCards(cards) {
+  const { search, memberModes, dueModes, labelIds } = state.filters;
+  const userName = getUserName();
+  return cards.filter(c => {
+    if (search) {
+      const q = search.toLowerCase();
+      const inTitle = (c.title || '').toLowerCase().includes(q);
+      const inDesc = (c.description || '').toLowerCase().includes(q);
+      if (!inTitle && !inDesc) return false;
+    }
+    if (memberModes && memberModes.size) {
+      const assignees = c.assignees || [];
+      let match = false;
+      if (memberModes.has('none') && assignees.length === 0) match = true;
+      if (memberModes.has('me') && userName && assignees.includes(userName)) match = true;
+      if (!match) return false;
+    }
+    if (dueModes && dueModes.size) {
+      let match = false;
+      if (dueModes.has('none') && !c.due_date) match = true;
+      if (c.due_date) {
+        const due = new Date(c.due_date + 'T00:00:00');
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((due - today) / 86400000);
+        if (dueModes.has('overdue') && diffDays < 0) match = true;
+        if (dueModes.has('day') && diffDays >= 0 && diffDays <= 1) match = true;
+        if (dueModes.has('week') && diffDays >= 0 && diffDays <= 7) match = true;
+        if (dueModes.has('month') && diffDays >= 0 && diffDays <= 31) match = true;
+      }
+      if (!match) return false;
+    }
+    if (labelIds && labelIds.size) {
+      const cardLabelIds = (c.card_labels || []).map(cl => cl.label_id);
+      let match = labelIds.has('none') && cardLabelIds.length === 0;
+      if (!match) match = cardLabelIds.some(id => labelIds.has(id));
+      if (!match) return false;
+    }
+    return true;
+  });
+}
+
+function formatDue(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdue = d < today;
+  const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  return { label, overdue };
+}
+
+function cardLabelBars(card, boardLabels) {
+  const labelIds = (card.card_labels || []).map(cl => cl.label_id);
+  if (!labelIds.length) return '';
+  const chips = labelIds.map(id => {
+    const l = boardLabels.find(x => x.id === id);
+    if (!l) return '';
+    return `<span class="card-label-chip" style="background:${l.color};color:${contrastText(l.color)}">${escapeHtml(l.name)}</span>`;
+  }).join('');
+  return `<div class="card-labels-row">${chips}</div>`;
+}
+
+function initials(name) {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+
+function colorForName(name) {
+  const str = (name || '').trim().toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) >>> 0; }
+  return LABEL_PALETTE[hash % LABEL_PALETTE.length];
+}
+
+function cardMetaPills(card) {
+  const due = formatDue(card.due_date);
+  const checklist = card.checklist_items || [];
+  const doneCount = checklist.filter(c => c.done).length;
+  const assignees = card.assignees || [];
+  let pills = '';
+  if (due) pills += `<span class="meta-pill due-pill ${due.overdue ? 'overdue' : ''}">🕐 ${due.label}</span>`;
+  if (checklist.length) pills += `<span class="meta-pill">☑ ${doneCount}/${checklist.length}</span>`;
+  if (card.attachments && card.attachments.length) pills += `<span class="meta-pill">📎 ${card.attachments.length}</span>`;
+  if (card.card_comments && card.card_comments.length) pills += `<span class="meta-pill">💬 ${card.card_comments.length}</span>`;
+  let avatars = '';
+  if (assignees.length) {
+    avatars = `<div class="card-avatars" title="${escapeHtml(assignees.join(', '))}">${assignees.map(a => {
+      const color = colorForName(a);
+      return `<span class="avatar-chip" style="background:${color};color:${contrastText(color)}">${escapeHtml(initials(a))}</span>`;
+    }).join('')}</div>`;
+  }
+  const rowContent = pills + avatars;
+  return rowContent ? `<div class="meta-row">${rowContent}</div>` : '';
+}
+
+function renderOverviewBoard(board) {
+  const columns = (state.columns[board.id] || []).slice().sort((a,b) => a.position - b.position);
+  const cards = state.cards[board.id] || [];
+  const labels = state.labels[board.id] || [];
+  const cols = columns.map(col => {
+    const colCards = cards.filter(c => c.column_id === col.id);
+    const cardsHtml = colCards.length
+      ? colCards.map(c => `<div class="mini-card" onclick="openCard('${c.id}')"><div class="mini-card-content">${cardLabelBars(c, labels)}<div>${escapeHtml(c.title)}</div>${cardMetaPills(c)}</div></div>`).join('')
+      : `<div class="empty-hint">Vazio</div>`;
+    return `<div class="mini-column"><div class="name">${escapeHtml(col.name)}</div>${cardsHtml}</div>`;
+  }).join('');
+  return `<div class="overview-board" style="${accentStyle(board)}">
+    <div class="overview-board-header" onclick="switchView('${board.id}')">
+      <span class="icon">${boardIcon(board.slug)}</span>
+      <h2>${escapeHtml(board.name)}</h2>
+      <span class="go">Abrir quadro →</span>
+    </div>
+    <div class="mini-columns">${cols}</div>
+  </div>`;
+}
+
+function renderBoardShell(board) {
+  const allCards = state.cards[board.id] || [];
+  return `<div style="${accentStyle(board)}">
+    <div class="board-banner">
+      <span class="icon">${boardIcon(board.slug)}</span>
+      <div>
+        <h1>${escapeHtml(board.name)}</h1>
+        <div class="subtitle">${allCards.length} ${allCards.length === 1 ? 'card' : 'cards'} no total</div>
+      </div>
+    </div>
+    <div class="board-inner">
+      <div class="filter-bar">
+        <button class="filter-trigger-btn" id="filter-trigger-btn" onclick="showFilterPopover(event,'${board.id}')">
+          🔎 Filtro <span class="filter-trigger-badge" id="filter-trigger-badge"></span>
+        </button>
+        <div class="view-mode-toggle">
+          <button class="${state.viewMode === 'board' ? 'active' : ''}" onclick="setViewMode('board')">▦ Quadro</button>
+          <button class="${state.viewMode === 'list' ? 'active' : ''}" onclick="setViewMode('list')">☰ Lista</button>
+        </div>
+      </div>
+      <div id="board-columns-wrap"></div>
+    </div>
+  </div>`;
+}
+
+function showFilterPopover(event, boardId) {
+  closeFilterPopover();
+  closeLabelPopover();
+  closeCardContextMenu();
+  closeColumnMenu();
+  const labels = state.labels[boardId] || [];
+  const f = state.filters;
+  const memberRow = (mode, icon, label) => `<label class="filter-checkbox-row"><input type="checkbox" ${f.memberModes.has(mode) ? 'checked' : ''} onchange="onFilterCheckbox('member','${mode}',this.checked,'${boardId}')"><span class="filter-icon">${icon}</span>${label}</label>`;
+  const dueRow = (mode, icon, label) => `<label class="filter-checkbox-row"><input type="checkbox" ${f.dueModes.has(mode) ? 'checked' : ''} onchange="onFilterCheckbox('due','${mode}',this.checked,'${boardId}')"><span class="filter-icon">${icon}</span>${label}</label>`;
+  const labelRows = `<label class="filter-checkbox-row"><input type="checkbox" ${f.labelIds.has('none') ? 'checked' : ''} onchange="onFilterCheckbox('label','none',this.checked,'${boardId}')"><span class="filter-icon">🏷</span>Sem etiquetas</label>` +
+    labels.map(l => `<label class="filter-checkbox-row"><input type="checkbox" ${f.labelIds.has(l.id) ? 'checked' : ''} onchange="onFilterCheckbox('label','${l.id}',this.checked,'${boardId}')"><span class="filter-label-pill" style="background:${l.color};color:${contrastText(l.color)}">${escapeHtml(l.name)}</span></label>`).join('');
+
+  const html = `<div class="label-popover filter-popover" id="floating-filter-popover">
+    <div class="popover-header"><span>Filtro</span><button class="popover-close-btn" onclick="closeFilterPopover()">×</button></div>
+    <div class="filter-popover-body">
+      <div class="filter-group">
+        <div class="filter-group-label">Palavra-chave</div>
+        <input type="text" class="popover-search" placeholder="Insira uma palavra-chave..." value="${escapeHtml(f.search)}" oninput="onFilterKeywordInput(this.value,'${boardId}')">
+        <div class="filter-hint">Pesquise por título ou descrição.</div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Membros</div>
+        ${memberRow('none', '👥', 'Sem membros')}
+        ${memberRow('me', '🙋', 'Atribuído a mim')}
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Data de entrega</div>
+        ${dueRow('none', '📅', 'Sem datas')}
+        ${dueRow('overdue', '⚠️', 'Em atraso')}
+        ${dueRow('day', '🕐', 'Vence em um dia')}
+        ${dueRow('week', '🕐', 'Vence em uma semana')}
+        ${dueRow('month', '🕐', 'Vence em um mês')}
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Etiquetas</div>
+        ${labelRows}
+      </div>
+      <button class="modal-primary-btn" style="width:100%;" onclick="clearAllFilters('${boardId}')">Limpar filtros</button>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const popover = document.getElementById('floating-filter-popover');
+  const rect = event.currentTarget.getBoundingClientRect();
+  let left = rect.left, top = rect.bottom + 6;
+  const w = popover.offsetWidth, h = popover.offsetHeight;
+  if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, window.innerHeight - h - 8);
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+}
+
+function closeFilterPopover() {
+  const el = document.getElementById('floating-filter-popover');
+  if (el) el.remove();
+}
+
+function onFilterKeywordInput(value, boardId) {
+  state.filters.search = value;
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+  updateFilterBadge();
+}
+
+function onFilterCheckbox(type, value, checked, boardId) {
+  const set = type === 'member' ? state.filters.memberModes : type === 'due' ? state.filters.dueModes : state.filters.labelIds;
+  if (checked) set.add(value); else set.delete(value);
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+  updateFilterBadge();
+}
+
+function clearAllFilters(boardId) {
+  state.filters = { search: '', memberModes: new Set(), dueModes: new Set(), labelIds: new Set() };
+  const popover = document.getElementById('floating-filter-popover');
+  if (popover) {
+    popover.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = false; });
+    const kw = popover.querySelector('.popover-search');
+    if (kw) kw.value = '';
+  }
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+  updateFilterBadge();
+}
+
+function updateFilterBadge() {
+  const f = state.filters;
+  const count = f.memberModes.size + f.dueModes.size + f.labelIds.size + (f.search.trim() ? 1 : 0);
+  const badge = document.getElementById('filter-trigger-badge');
+  if (badge) badge.textContent = count > 0 ? count : '';
+  const btn = document.getElementById('filter-trigger-btn');
+  if (btn) btn.classList.toggle('active', count > 0);
+}
+
+function renderBoardList(board) {
+  const columns = (state.columns[board.id] || []).slice().sort((a, b) => a.position - b.position);
+  const allCards = state.cards[board.id] || [];
+  const cards = filterCards(allCards);
+  const labels = state.labels[board.id] || [];
+  const sections = columns.map(col => {
+    const colCards = cards.filter(c => c.column_id === col.id).sort((a, b) => a.position - b.position);
+    const rowsHtml = colCards.length
+      ? colCards.map(c => `
+        <div class="list-row" data-card-id="${c.id}" onclick="openCard('${c.id}')">
+          <div class="list-row-labels">${cardLabelBars(c, labels)}</div>
+          <div class="list-row-title">${escapeHtml(c.title)}</div>
+          <div class="list-row-meta">${cardMetaPills(c)}</div>
+          <button class="card-menu-btn" style="position:static;opacity:.6;" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();const r=this.getBoundingClientRect();showCardContextMenu(r.right,r.bottom+4,'${c.id}','${board.id}')">⋯</button>
+        </div>`).join('')
+      : `<div class="empty-hint" style="margin:6px 16px;">${allCards.some(c => c.column_id === col.id) ? 'Nenhum card corresponde ao filtro' : 'Nenhum card nesta coluna'}</div>`;
+    const headerStyle = col.color ? `border-left-color:${col.color};` : '';
+    return `<div class="list-section">
+      <div class="list-section-header" style="${headerStyle}">
+        <span class="list-section-name">${escapeHtml(col.name)}</span>
+        <span class="count">${colCards.length}</span>
+        <button class="add-card-btn" style="width:auto;margin:0 0 0 auto;padding:6px 12px;" onclick="promptAddCard('${board.id}','${col.id}')">+ Adicionar card</button>
+      </div>
+      <div class="list-rows">${rowsHtml}</div>
+    </div>`;
+  }).join('');
+  const wrap = document.getElementById('board-columns-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = `<div class="board-list">${sections}</div>`;
+}
+
+function renderBoardColumns(board) {
+  const columns = (state.columns[board.id] || []).slice().sort((a, b) => a.position - b.position);
+  const allCards = state.cards[board.id] || [];
+  const cards = filterCards(allCards);
+  const labels = state.labels[board.id] || [];
+  const cols = columns.map((col, idx) => {
+    const colCards = cards.filter(c => c.column_id === col.id).sort((a, b) => a.position - b.position);
+    const cardsHtml = colCards.length
+      ? colCards.map(c => `
+      <div class="card" data-card-id="${c.id}">
+        <button class="card-menu-btn" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();const r=this.getBoundingClientRect();showCardContextMenu(r.right,r.bottom+4,'${c.id}','${board.id}')">⋯</button>
+        <div class="card-content">
+          ${cardLabelBars(c, labels)}
+          <div class="title">${escapeHtml(c.title)}</div>
+          ${cardMetaPills(c)}
+        </div>
+      </div>`).join('')
+      : `<div class="empty-hint">${allCards.some(c => c.column_id === col.id) ? 'Nenhum card corresponde ao filtro' : 'Arraste um card aqui'}</div>`;
+    const columnStyle = col.color ? `background:${col.color}22;` : '';
+    const headerStyle = col.color ? `border-bottom-color:${col.color};` : '';
+    return `<div class="column" data-column-id="${col.id}" style="${columnStyle}">
+      <div class="column-header" style="${headerStyle}">
+        <span class="name">${escapeHtml(col.name)}</span>
+        <div class="column-header-right">
+          <span class="count">${colCards.length}</span>
+          <button class="column-add-btn" title="Adicionar card" onclick="promptAddCard('${board.id}','${col.id}')">+</button>
+          <button class="col-menu-btn" onclick="showColumnMenu(event,'${board.id}','${col.id}')">⋯</button>
+        </div>
+      </div>
+      <div class="card-list" data-column-id="${col.id}">${cardsHtml}</div>
+      <button class="add-card-btn" onclick="promptAddCard('${board.id}','${col.id}')">+ Adicionar card</button>
+    </div>`;
+  }).join('');
+  const wrap = document.getElementById('board-columns-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = `<div class="board-columns">
+    ${cols}
+    <button class="add-column-btn" onclick="promptAddColumn('${board.id}')">+ Adicionar coluna</button>
+  </div>`;
+  attachDnD(board.id);
+}
+
+function showColumnMenu(event, boardId, columnId) {
+  event.stopPropagation();
+  closeColumnMenu();
+  const col = state.columns[boardId].find(c => c.id === columnId);
+  if (!col) return;
+  const colorSwatches = `<button class="swatch swatch-none ${!col.color ? 'selected' : ''}" data-color="" title="Cor padrão do quadro" onclick="setColumnColor('${boardId}','${columnId}',null)"></button>` +
+    LABEL_PALETTE.map(c => `<button class="swatch ${col.color === c ? 'selected' : ''}" data-color="${c}" style="background:${c}" onclick="setColumnColor('${boardId}','${columnId}','${c}')"></button>`).join('');
+  const menuHtml = `<div class="column-menu" id="floating-column-menu">
+    <button onclick="moveColumn('${boardId}','${columnId}',-1);closeColumnMenu();">‹ Mover para esquerda</button>
+    <button onclick="moveColumn('${boardId}','${columnId}',1);closeColumnMenu();">Mover para direita ›</button>
+    <button onclick="renameColumn('${boardId}','${columnId}');closeColumnMenu();">✎ Renomear coluna</button>
+    <div class="column-menu-divider"></div>
+    <div class="column-menu-label">Cor da coluna</div>
+    <div class="column-menu-swatches">${colorSwatches}</div>
+    <div class="column-menu-divider"></div>
+    <button class="danger" onclick="deleteColumnPrompt('${boardId}','${columnId}');closeColumnMenu();">🗑 Excluir coluna</button>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', menuHtml);
+  const menu = document.getElementById('floating-column-menu');
+  const btnRect = event.currentTarget.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth;
+  const menuHeight = menu.offsetHeight;
+  let left = btnRect.right - menuWidth;
+  let top = btnRect.bottom + 6;
+  if (left < 8) left = 8;
+  if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
+  if (top + menuHeight > window.innerHeight - 8) top = btnRect.top - menuHeight - 6;
+  menu.style.position = 'fixed';
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+
+function closeColumnMenu() {
+  const el = document.getElementById('floating-column-menu');
+  if (el) el.remove();
+}
+
+function refreshColumnMenuSwatches(boardId, columnId) {
+  const menu = document.getElementById('floating-column-menu');
+  if (!menu) return;
+  const col = state.columns[boardId].find(c => c.id === columnId);
+  menu.querySelectorAll('.column-menu-swatches .swatch').forEach(el => {
+    const val = el.dataset.color || null;
+    el.classList.toggle('selected', val === (col.color || null));
+  });
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#floating-column-menu') && !e.target.closest('.col-menu-btn')) {
+    closeColumnMenu();
+  }
+  if (!e.target.closest('#floating-label-popover') && !e.target.closest('.add-label-btn')) {
+    closeLabelPopover();
+  }
+  if (!e.target.closest('#floating-card-menu') && !e.target.closest('.card-menu-btn')) {
+    closeCardContextMenu();
+  }
+  if (!e.target.closest('#floating-filter-popover') && !e.target.closest('#filter-trigger-btn')) {
+    closeFilterPopover();
+  }
+  if (!e.target.closest('#floating-new-board-popover') && !e.target.closest('.sidebar-add-board-btn')) {
+    closeNewBoardPopover();
+  }
+});
+
+async function renameColumn(boardId, columnId) {
+  const col = state.columns[boardId].find(c => c.id === columnId);
+  if (!col) return;
+  const name = prompt('Novo nome da coluna:', col.name);
+  if (!name || !name.trim()) return;
+  setSync('saving');
+  const { error } = await sb.from('columns').update({ name: name.trim() }).eq('id', columnId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  col.name = name.trim();
+  setSync('ok');
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+}
+
+async function deleteColumnPrompt(boardId, columnId) {
+  const col = state.columns[boardId].find(c => c.id === columnId);
+  if (!col) return;
+  const cardsInCol = (state.cards[boardId] || []).filter(c => c.column_id === columnId);
+  const msg = cardsInCol.length > 0
+    ? `Excluir a coluna "${col.name}"? Os ${cardsInCol.length} card(s) dentro dela também vão para a lixeira. Dá pra desfazer logo em seguida.`
+    : `Excluir a coluna "${col.name}"? Dá pra desfazer logo em seguida.`;
+  if (!confirm(msg)) return;
+  const now = new Date().toISOString();
+  setSync('saving');
+  const { error } = await sb.from('columns').update({ deleted_at: now }).eq('id', columnId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  const cardUpdates = await Promise.all(cardsInCol.map(c => sb.from('cards').update({ deleted_at: now }).eq('id', c.id)));
+  col.deleted_at = now;
+  cardsInCol.forEach(c => { c.deleted_at = now; });
+  state.columns[boardId] = state.columns[boardId].filter(c => c.id !== columnId);
+  state.cards[boardId] = state.cards[boardId].filter(c => c.column_id !== columnId);
+  setSync('ok');
+  render();
+  showUndoToast(`Coluna "${col.name}" excluída`, async () => {
+    setSync('saving');
+    await sb.from('columns').update({ deleted_at: null }).eq('id', columnId);
+    await Promise.all(cardsInCol.map(c => sb.from('cards').update({ deleted_at: null }).eq('id', c.id)));
+    col.deleted_at = null;
+    cardsInCol.forEach(c => { c.deleted_at = null; });
+    state.columns[boardId].push(col);
+    state.cards[boardId].push(...cardsInCol);
+    setSync('ok');
+    render();
+  });
+}
+
+async function setColumnColor(boardId, columnId, color) {
+  const col = state.columns[boardId].find(c => c.id === columnId);
+  if (!col) return;
+  setSync('saving');
+  const { error } = await sb.from('columns').update({ color }).eq('id', columnId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  col.color = color;
+  setSync('ok');
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+  refreshColumnMenuSwatches(boardId, columnId);
+}
+
+async function moveColumn(boardId, columnId, direction) {
+  const cols = state.columns[boardId].slice().sort((a, b) => a.position - b.position);
+  const idx = cols.findIndex(c => c.id === columnId);
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= cols.length) return;
+  const a = cols[idx], b = cols[swapIdx];
+  const posA = a.position, posB = b.position;
+  a.position = posB;
+  b.position = posA;
+  setSync('saving');
+  const results = await Promise.all([
+    sb.from('columns').update({ position: a.position }).eq('id', a.id),
+    sb.from('columns').update({ position: b.position }).eq('id', b.id),
+  ]);
+  if (results.some(r => r.error)) { setSync('error'); alert('Erro ao mover coluna'); return; }
+  setSync('ok');
+  renderCurrentBoardView(state.boards.find(bd => bd.id === boardId));
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+/* ---------- Column / Card creation ---------- */
+async function promptAddColumn(boardId) {
+  const name = prompt('Nome da coluna:');
+  if (!name) return;
+  const columns = state.columns[boardId] || [];
+  setSync('saving');
+  const { data, error } = await sb.from('columns').insert({ board_id: boardId, name, position: columns.length }).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  state.columns[boardId].push(data);
+  setSync('ok');
+  render();
+}
+
+async function promptAddCard(boardId, columnId) {
+  const title = prompt('Título do card:');
+  if (!title) return;
+  const userName = ensureUserName();
+  const cards = (state.cards[boardId] || []).filter(c => c.column_id === columnId);
+  setSync('saving');
+  const { data, error } = await sb.from('cards').insert({ board_id: boardId, column_id: columnId, title, position: cards.length, created_by: userName, updated_by: userName }).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  data.card_labels = []; data.checklist_items = []; data.attachments = []; data.assignees = []; data.card_comments = [];
+  state.cards[boardId].push(data);
+  setSync('ok');
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+}
+
+/* ---------- Drag and drop (mouse + touch via Pointer Events) ---------- */
+function attachDnD(boardId) {
+  document.querySelectorAll('.card[data-card-id]').forEach(el => {
+    el.addEventListener('pointerdown', e => startCardDrag(e, el, boardId));
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      showCardContextMenu(e.clientX, e.clientY, el.dataset.cardId, boardId);
+    });
+  });
+}
+
+function startCardDrag(e, el, boardId) {
+  if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+  const startX = e.clientX, startY = e.clientY;
+  const cardId = el.dataset.cardId;
+  const origRect = el.getBoundingClientRect();
+  let dragging = false;
+  let ghost = null;
+
+  function onMove(ev) {
+    const dx = ev.clientX - startX, dy = ev.clientY - startY;
+    if (!dragging && Math.hypot(dx, dy) > 8) {
+      dragging = true;
+      el.classList.add('dragging');
+      ghost = el.cloneNode(true);
+      ghost.classList.add('card-ghost');
+      ghost.style.width = origRect.width + 'px';
+      ghost.style.left = origRect.left + 'px';
+      ghost.style.top = origRect.top + 'px';
+      document.body.appendChild(ghost);
+    }
+    if (dragging) {
+      ghost.style.left = (origRect.left + dx) + 'px';
+      ghost.style.top = (origRect.top + dy) + 'px';
+      document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+      const col = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.column');
+      if (col) col.classList.add('drag-over');
+    }
+  }
+
+  async function onUp(ev) {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+    if (dragging) {
+      el.classList.remove('dragging');
+      if (ghost) ghost.remove();
+      document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+      const dropCol = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.column');
+      if (dropCol) {
+        const list = dropCol.querySelector('.card-list');
+        const dropIndex = computeDropIndex(list, ev.clientY);
+        await moveCard(boardId, cardId, dropCol.dataset.columnId, dropIndex);
+      }
+    } else {
+      openCard(cardId);
+    }
+  }
+
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+  document.addEventListener('pointercancel', onUp);
+}
+
+function computeDropIndex(listEl, clientY) {
+  const cardEls = [...listEl.querySelectorAll('.card')];
+  for (let i = 0; i < cardEls.length; i++) {
+    const rect = cardEls[i].getBoundingClientRect();
+    if (clientY < rect.top + rect.height / 2) return i;
+  }
+  return cardEls.length;
+}
+
+async function moveCard(boardId, cardId, newColumnId, dropIndex) {
+  const cards = state.cards[boardId];
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+  const oldColumnId = card.column_id;
+  card.column_id = newColumnId;
+  card.updated_by = ensureUserName();
+
+  let targetCards = cards.filter(c => c.column_id === newColumnId && c.id !== cardId).sort((a, b) => a.position - b.position);
+  const insertAt = Math.max(0, Math.min(dropIndex, targetCards.length));
+  targetCards.splice(insertAt, 0, card);
+  targetCards.forEach((c, i) => { c.position = i; });
+
+  const updates = targetCards.map(c => {
+    const payload = { column_id: c.column_id, position: c.position };
+    if (c.id === cardId) payload.updated_by = card.updated_by;
+    return sb.from('cards').update(payload).eq('id', c.id);
+  });
+
+  if (oldColumnId !== newColumnId) {
+    const oldCards = cards.filter(c => c.column_id === oldColumnId).sort((a, b) => a.position - b.position);
+    oldCards.forEach((c, i) => { c.position = i; });
+    updates.push(...oldCards.map(c => sb.from('cards').update({ position: c.position }).eq('id', c.id)));
+  }
+
+  setSync('saving');
+  const results = await Promise.all(updates);
+  const failed = results.find(r => r.error);
+  if (failed) { setSync('error'); alert('Erro ao mover: ' + failed.error.message); return; }
+  setSync('ok');
+  renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+}
+
+async function moveCardToColumn(boardId, cardId, newColumnId) {
+  const targetCount = state.cards[boardId].filter(c => c.column_id === newColumnId).length;
+  await moveCard(boardId, cardId, newColumnId, targetCount);
+}
+
+function showCardContextMenu(x, y, cardId, boardId) {
+  closeCardContextMenu();
+  closeLabelPopover();
+  closeColumnMenu();
+  const found = findCard(cardId);
+  if (!found) return;
+  const otherColumns = (state.columns[boardId] || []).slice().sort((a, b) => a.position - b.position).filter(c => c.id !== found.card.column_id);
+  const moveHtml = otherColumns.length
+    ? `<div class="column-menu-divider"></div><div class="column-menu-label">Mover para</div>${otherColumns.map(c => `<button onclick="moveCardToColumn('${boardId}','${cardId}','${c.id}');closeCardContextMenu();">→ ${escapeHtml(c.name)}</button>`).join('')}`
+    : '';
+  const html = `<div class="column-menu" id="floating-card-menu">
+    <button onclick="closeCardContextMenu();openCard('${cardId}');">📂 Abrir cartão</button>
+    <button onclick="closeCardContextMenu();quickEditLabels('${cardId}','${boardId}');">🏷 Editar etiquetas</button>
+    <button onclick="closeCardContextMenu();quickEditMembers('${cardId}','${boardId}');">👤 Alterar membros</button>
+    <button onclick="closeCardContextMenu();quickEditDate('${cardId}','${boardId}');">📅 Editar data</button>
+    ${moveHtml}
+    <div class="column-menu-divider"></div>
+    <button class="danger" onclick="closeCardContextMenu();deleteCard('${cardId}','${boardId}');">🗑 Excluir card</button>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const menu = document.getElementById('floating-card-menu');
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  let left = x, top = y;
+  if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+  if (left < 8) left = 8;
+  if (top + h > window.innerHeight - 8) top = window.innerHeight - h - 8;
+  menu.style.position = 'fixed';
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+
+function closeCardContextMenu() {
+  const el = document.getElementById('floating-card-menu');
+  if (el) el.remove();
+}
+
+async function quickEditLabels(cardId, boardId) {
+  await openCard(cardId);
+  const btn = document.querySelector('.add-label-btn');
+  if (btn) {
+    const r = btn.getBoundingClientRect();
+    showLabelPopover(r.left, r.bottom + 6, cardId, boardId);
+  }
+}
+
+async function quickEditMembers(cardId, boardId) {
+  await openCard(cardId);
+  const input = document.getElementById('new-assignee-name');
+  if (input) { input.scrollIntoView({ block: 'center', behavior: 'smooth' }); input.focus(); }
+}
+
+async function quickEditDate(cardId, boardId) {
+  await openCard(cardId);
+  const input = document.querySelector('.card-modal-main input[type=date]');
+  if (input) {
+    input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    input.focus();
+    if (input.showPicker) { try { input.showPicker(); } catch (e) {} }
+  }
+}
+
+/* ---------- Card modal ---------- */
+function findCard(cardId) {
+  for (const boardId in state.cards) {
+    const card = state.cards[boardId].find(c => c.id === cardId);
+    if (card) return { card, boardId };
+  }
+  return null;
+}
+
+async function openCard(cardId) {
+  state.openCardId = cardId;
+  const found = findCard(cardId);
+  if (!found) return;
+  const { card, boardId } = found;
+
+  const [{ data: fullCard }, { data: checklist }, { data: attachments }, { data: comments }] = await Promise.all([
+    sb.from('cards').select('*, card_labels(label_id)').eq('id', cardId).single(),
+    sb.from('checklist_items').select('*').eq('card_id', cardId).order('position'),
+    sb.from('attachments').select('*').eq('card_id', cardId).order('created_at'),
+    sb.from('card_comments').select('*').eq('card_id', cardId).order('created_at'),
+  ]);
+  card.description = fullCard.description;
+  card.due_date = fullCard.due_date;
+  card.card_labels = fullCard.card_labels;
+  card.assignees = fullCard.assignees || [];
+  card.checklist_items = checklist || [];
+  card.attachments = attachments || [];
+  card.card_comments = comments || [];
+
+  renderModal(boardId, card);
+}
+
+function closeModal() {
+  const el = document.getElementById('modal-backdrop');
+  if (el) el.remove();
+  state.openCardId = null;
+  render();
+  if (pendingRemoteRefresh) {
+    pendingRemoteRefresh = false;
+    refreshData();
+  }
+}
+
+function renderModal(boardId, card) {
+  const existing = document.getElementById('modal-backdrop');
+  if (existing) existing.remove();
+  closeLabelPopover();
+  closeCardContextMenu();
+
+  const checklist = card.checklist_items || [];
+  const doneCount = checklist.filter(c => c.done).length;
+  const progressPct = checklist.length ? Math.round((doneCount / checklist.length) * 100) : 0;
+  const checklistHtml = checklist.map(item => `
+    <div class="checklist-item">
+      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleChecklistItem('${item.id}','${card.id}',this.checked)">
+      <span class="${item.done ? 'done' : ''}">${escapeHtml(item.text)}</span>
+      <button class="del-btn" onclick="deleteChecklistItem('${item.id}','${card.id}')">×</button>
+    </div>
+  `).join('');
+
+  const attachmentsHtml = (card.attachments || []).map(a => `
+    <div class="attachment-item">
+      <a href="${a.file_url}" target="_blank" rel="noopener">${escapeHtml(a.file_name)}</a>
+      <button class="del-btn" onclick="deleteAttachment('${a.id}','${card.id}')">×</button>
+    </div>
+  `).join('');
+
+  const assignees = card.assignees || [];
+  const assigneesHtml = assignees.map((name, idx) => `
+    <span class="assignee-chip">
+      <span class="avatar" style="background:${colorForName(name)};color:${contrastText(colorForName(name))}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}
+      <button class="remove-btn" onclick="removeAssignee('${card.id}','${boardId}',${idx})">×</button>
+    </span>
+  `).join('');
+
+  const comments = card.card_comments || [];
+  const commentsHtml = comments.length
+    ? comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-avatar" style="background:${colorForName(c.author)};color:${contrastText(colorForName(c.author))}">${escapeHtml(initials(c.author))}</div>
+        <div class="comment-body">
+          <div class="comment-meta"><span class="comment-author">${escapeHtml(c.author)}</span><span class="comment-time">${formatCommentTime(c.created_at)}</span></div>
+          <div class="comment-text">${escapeHtml(c.text)}</div>
+        </div>
+      </div>
+    `).join('')
+    : `<div class="comment-empty">Nenhum comentário ainda.</div>`;
+
+  const html = `
+  <div class="modal-backdrop" id="modal-backdrop" onclick="if(event.target===this) closeModal()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <div class="card-modal-main">
+        <input class="title-input" type="text" value="${escapeHtml(card.title)}" onblur="updateCardField('${card.id}','title',this.value)">
+        ${(card.created_by || card.updated_by) ? `<div class="card-authorship">${card.created_by ? `Criado por ${escapeHtml(card.created_by)}` : ''}${card.created_by && card.updated_by && card.updated_by !== card.created_by ? ` · Editado por ${escapeHtml(card.updated_by)}` : ''}</div>` : ''}
+
+        <div class="modal-section">
+          <div class="section-label">Descrição</div>
+          <textarea placeholder="Adicionar descrição..." onblur="updateCardField('${card.id}','description',this.value)">${escapeHtml(card.description || '')}</textarea>
+        </div>
+
+        <div class="modal-section">
+          <div class="section-label">Etiquetas</div>
+          <div class="label-chips-row" id="label-chips-row">${renderLabelChipsInner(card.id, boardId)}</div>
+        </div>
+
+        <div class="modal-section">
+          <div class="section-label">Checklist</div>
+          ${checklist.length ? `<div class="checklist-progress-row"><span>${progressPct}%</span><div class="checklist-progress-bar"><div class="fill" style="width:${progressPct}%"></div></div></div>` : ''}
+          ${checklistHtml}
+          <div class="inline-add">
+            <input type="text" id="new-checklist-item" placeholder="Adicionar item...">
+            <button onclick="addChecklistItem('${card.id}')">Adicionar</button>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="section-label">Data de vencimento</div>
+          <input type="date" value="${card.due_date || ''}" onchange="updateCardField('${card.id}','due_date',this.value)">
+        </div>
+
+        <div class="modal-section">
+          <div class="section-label">Responsáveis</div>
+          <div class="assignee-list">${assigneesHtml}</div>
+          <div class="inline-add">
+            <input type="text" id="new-assignee-name" placeholder="Nome da pessoa..." onkeydown="if(event.key==='Enter'){event.preventDefault();addAssignee('${card.id}','${boardId}');}">
+            <button onclick="addAssignee('${card.id}','${boardId}')">Adicionar</button>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="section-label">Anexos</div>
+          ${attachmentsHtml}
+          <label class="file-upload-label" style="margin-top:8px;">
+            Enviar arquivo...
+            <input type="file" style="display:none" onchange="uploadAttachment(event,'${card.id}')">
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="delete-card-btn" onclick="deleteCard('${card.id}','${boardId}')">Excluir card</button>
+        </div>
+      </div>
+
+      <div class="card-modal-sidebar">
+        <div class="section-label">Comentários e atividade</div>
+        <div class="comment-list">${commentsHtml}</div>
+        <div class="comment-composer">
+          <textarea id="new-comment-text" placeholder="Escrever um comentário..." rows="3" onkeydown="if((event.key==='Enter')&&(event.metaKey||event.ctrlKey)){event.preventDefault();addComment('${card.id}','${boardId}');}"></textarea>
+          <button class="modal-primary-btn" onclick="addComment('${card.id}','${boardId}')">Comentar</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function updateCardField(cardId, field, value) {
+  const found = findCard(cardId);
+  if (!found) return;
+  const userName = ensureUserName();
+  found.card[field] = value || null;
+  found.card.updated_by = userName;
+  setSync('saving');
+  const { error } = await sb.from('cards').update({ [field]: value || null, updated_by: userName }).eq('id', cardId);
+  if (error) { setSync('error'); return; }
+  setSync('ok');
+  render();
+}
+
+function refreshLabelUI(cardId, boardId) {
+  const popoverList = document.getElementById('label-popover-list');
+  if (popoverList) popoverList.innerHTML = renderLabelPopoverList(cardId, boardId);
+  const chipsRow = document.getElementById('label-chips-row');
+  if (chipsRow) chipsRow.innerHTML = renderLabelChipsInner(cardId, boardId);
+  if (state.view === boardId) {
+    renderCurrentBoardView(state.boards.find(b => b.id === boardId));
+  } else if (state.view === 'overview') {
+    render();
+  }
+}
+
+function renderLabelChipsInner(cardId, boardId) {
+  const found = findCard(cardId);
+  if (!found) return '';
+  const labels = state.labels[boardId] || [];
+  const selectedIds = (found.card.card_labels || []).map(cl => cl.label_id);
+  const chips = selectedIds.map(id => {
+    const l = labels.find(x => x.id === id);
+    if (!l) return '';
+    return `<span class="label-pill" style="background:${l.color};color:${contrastText(l.color)}">${escapeHtml(l.name)}</span>`;
+  }).join('');
+  return `${chips}<button class="add-label-btn" title="Adicionar etiqueta" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();const r=this.getBoundingClientRect();showLabelPopover(r.left,r.bottom+6,'${cardId}','${boardId}')">+</button>`;
+}
+
+function renderLabelPopoverList(cardId, boardId) {
+  const found = findCard(cardId);
+  if (!found) return '';
+  const labels = state.labels[boardId] || [];
+  const selectedIds = (found.card.card_labels || []).map(cl => cl.label_id);
+  const search = (state.labelPopoverSearch || '').toLowerCase();
+  const filtered = labels.filter(l => !search || l.name.toLowerCase().includes(search));
+  if (!filtered.length) return `<div class="comment-empty">Nenhuma etiqueta encontrada.</div>`;
+  return filtered.map(l => {
+    if (state.editingLabelId === l.id) {
+      const draft = state.editLabelDraft;
+      const swatches = LABEL_PALETTE.map(c => `<button class="swatch ${draft.color === c ? 'selected' : ''}" style="background:${c}" onclick="setEditLabelColor('${c}')"></button>`).join('');
+      return `<div class="label-row-item editing">
+        <input type="text" class="label-edit-name" value="${escapeHtml(draft.name)}" oninput="state.editLabelDraft.name=this.value">
+        <div class="swatch-row">${swatches}</div>
+        <div class="label-edit-actions">
+          <button onclick="saveLabelEdit('${boardId}','${l.id}')">Salvar</button>
+          <button class="danger" onclick="deleteLabel('${boardId}','${l.id}','${cardId}')">Excluir</button>
+          <button onclick="cancelLabelEdit('${boardId}','${cardId}')">Cancelar</button>
+        </div>
+      </div>`;
+    }
+    const checked = selectedIds.includes(l.id);
+    const tooltip = `Cor: ${colorName(l.color)}, título: '${escapeHtml(l.name)}'`;
+    return `<div class="label-row-item ${checked ? '' : 'unselected'}" style="background:${l.color};color:${contrastText(l.color)}" title="${tooltip}" onclick="toggleLabel('${cardId}','${l.id}','${boardId}')">
+      <span class="label-check">${checked ? '✓' : ''}</span>
+      <span class="label-name">${escapeHtml(l.name)}</span>
+      <button class="label-edit-btn" style="color:${contrastText(l.color)}" onclick="event.stopPropagation();startEditLabel('${l.id}','${boardId}','${cardId}')">✎</button>
+    </div>`;
+  }).join('');
+}
+
+function showLabelPopover(x, y, cardId, boardId) {
+  closeCardContextMenu();
+  closeLabelPopover();
+  state.labelPopoverSearch = '';
+  state.labelPopoverCtx = { cardId, boardId };
+  const newLabelSwatches = LABEL_PALETTE.map((c, i) => `<button class="swatch ${i === 0 ? 'selected' : ''}" data-color="${c}" style="background:${c}" onclick="selectNewLabelColor(this)"></button>`).join('');
+  const html = `<div class="label-popover" id="floating-label-popover">
+    <div class="popover-header"><span>Etiquetas</span><button class="popover-close-btn" onclick="closeLabelPopover()">×</button></div>
+    <input type="text" class="popover-search" id="label-popover-search" placeholder="Buscar etiquetas..." oninput="onLabelPopoverSearch(this.value)">
+    <div class="label-list" id="label-popover-list">${renderLabelPopoverList(cardId, boardId)}</div>
+    <div class="new-label-block">
+      <input type="text" id="new-label-name" placeholder="Nome da nova etiqueta...">
+      <div class="swatch-row" id="new-label-swatches">${newLabelSwatches}</div>
+      <button class="modal-primary-btn" onclick="addLabel('${boardId}','${cardId}')">Criar etiqueta</button>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const popover = document.getElementById('floating-label-popover');
+  const w = popover.offsetWidth, h = popover.offsetHeight;
+  let left = x, top = y;
+  if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+  if (left < 8) left = 8;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, y - h - 6);
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+  const searchInput = document.getElementById('label-popover-search');
+  if (searchInput) searchInput.focus();
+}
+
+function closeLabelPopover() {
+  const el = document.getElementById('floating-label-popover');
+  if (el) el.remove();
+  state.labelPopoverCtx = null;
+}
+
+function onLabelPopoverSearch(value) {
+  state.labelPopoverSearch = value;
+  if (!state.labelPopoverCtx) return;
+  const { cardId, boardId } = state.labelPopoverCtx;
+  const listEl = document.getElementById('label-popover-list');
+  if (listEl) listEl.innerHTML = renderLabelPopoverList(cardId, boardId);
+}
+
+async function toggleLabel(cardId, labelId, boardId) {
+  const found = findCard(cardId);
+  const card = found.card;
+  const has = (card.card_labels || []).some(cl => cl.label_id === labelId);
+  setSync('saving');
+  if (has) {
+    await sb.from('card_labels').delete().eq('card_id', cardId).eq('label_id', labelId);
+    card.card_labels = card.card_labels.filter(cl => cl.label_id !== labelId);
+  } else {
+    await sb.from('card_labels').insert({ card_id: cardId, label_id: labelId });
+    card.card_labels = [...(card.card_labels || []), { label_id: labelId }];
+  }
+  setSync('ok');
+  refreshLabelUI(cardId, boardId);
+}
+
+async function addLabel(boardId, cardId) {
+  const input = document.getElementById('new-label-name');
+  const name = input.value.trim();
+  if (!name) return;
+  const selectedSwatch = document.querySelector('#new-label-swatches .swatch.selected');
+  const color = selectedSwatch ? selectedSwatch.dataset.color : LABEL_PALETTE[0];
+  setSync('saving');
+  const { data, error } = await sb.from('labels').insert({ board_id: boardId, name, color }).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  state.labels[boardId].push(data);
+  setSync('ok');
+  input.value = '';
+  await toggleLabel(cardId, data.id, boardId);
+}
+
+function selectNewLabelColor(el) {
+  document.querySelectorAll('#new-label-swatches .swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function startEditLabel(labelId, boardId, cardId) {
+  const label = state.labels[boardId].find(l => l.id === labelId);
+  if (!label) return;
+  state.editingLabelId = labelId;
+  state.editLabelDraft = { name: label.name, color: label.color };
+  refreshLabelUI(cardId, boardId);
+}
+
+function setEditLabelColor(color) {
+  state.editLabelDraft.color = color;
+  if (!state.labelPopoverCtx) return;
+  refreshLabelUI(state.labelPopoverCtx.cardId, state.labelPopoverCtx.boardId);
+}
+
+async function saveLabelEdit(boardId, labelId) {
+  const draft = state.editLabelDraft;
+  const name = (draft.name || '').trim();
+  if (!name) return;
+  setSync('saving');
+  const { error } = await sb.from('labels').update({ name, color: draft.color }).eq('id', labelId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  const label = state.labels[boardId].find(l => l.id === labelId);
+  label.name = name;
+  label.color = draft.color;
+  state.editingLabelId = null;
+  state.editLabelDraft = null;
+  setSync('ok');
+  if (state.labelPopoverCtx) refreshLabelUI(state.labelPopoverCtx.cardId, boardId);
+}
+
+function cancelLabelEdit(boardId, cardId) {
+  state.editingLabelId = null;
+  state.editLabelDraft = null;
+  refreshLabelUI(cardId, boardId);
+}
+
+async function deleteLabel(boardId, labelId, cardId) {
+  if (!confirm('Excluir esta etiqueta? Ela será removida de todos os cards que a usam.')) return;
+  setSync('saving');
+  const { error } = await sb.from('labels').delete().eq('id', labelId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  state.labels[boardId] = state.labels[boardId].filter(l => l.id !== labelId);
+  state.cards[boardId].forEach(c => {
+    if (c.card_labels) c.card_labels = c.card_labels.filter(cl => cl.label_id !== labelId);
+  });
+  state.editingLabelId = null;
+  state.editLabelDraft = null;
+  setSync('ok');
+  refreshLabelUI(cardId, boardId);
+}
+
+async function addChecklistItem(cardId) {
+  const input = document.getElementById('new-checklist-item');
+  const text = input.value.trim();
+  if (!text) return;
+  const found = findCard(cardId);
+  const position = (found.card.checklist_items || []).length;
+  setSync('saving');
+  const { data, error } = await sb.from('checklist_items').insert({ card_id: cardId, text, position }).select().single();
+  if (error) { setSync('error'); return; }
+  found.card.checklist_items = [...(found.card.checklist_items || []), data];
+  setSync('ok');
+  renderModal(found.boardId, found.card);
+}
+
+async function toggleChecklistItem(itemId, cardId, done) {
+  const found = findCard(cardId);
+  const item = found.card.checklist_items.find(i => i.id === itemId);
+  if (item) item.done = done;
+  setSync('saving');
+  const { error } = await sb.from('checklist_items').update({ done }).eq('id', itemId);
+  if (error) { setSync('error'); return; }
+  setSync('ok');
+  renderModal(found.boardId, found.card);
+}
+
+async function deleteChecklistItem(itemId, cardId) {
+  const found = findCard(cardId);
+  setSync('saving');
+  const { error } = await sb.from('checklist_items').delete().eq('id', itemId);
+  if (error) { setSync('error'); return; }
+  found.card.checklist_items = found.card.checklist_items.filter(i => i.id !== itemId);
+  setSync('ok');
+  renderModal(found.boardId, found.card);
+}
+
+async function uploadAttachment(event, cardId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const found = findCard(cardId);
+  setSync('saving');
+  const filePath = `${cardId}/${Date.now()}-${file.name}`;
+  const { error: uploadErr } = await sb.storage.from('attachments').upload(filePath, file);
+  if (uploadErr) { setSync('error'); alert('Erro ao enviar arquivo: ' + uploadErr.message); return; }
+  const { data: pub } = sb.storage.from('attachments').getPublicUrl(filePath);
+  const { data, error } = await sb.from('attachments').insert({ card_id: cardId, file_name: file.name, file_url: pub.publicUrl }).select().single();
+  if (error) { setSync('error'); return; }
+  found.card.attachments = [...(found.card.attachments || []), data];
+  setSync('ok');
+  renderModal(found.boardId, found.card);
+}
+
+async function deleteAttachment(attachmentId, cardId) {
+  const found = findCard(cardId);
+  setSync('saving');
+  const { error } = await sb.from('attachments').delete().eq('id', attachmentId);
+  if (error) { setSync('error'); return; }
+  found.card.attachments = found.card.attachments.filter(a => a.id !== attachmentId);
+  setSync('ok');
+  renderModal(found.boardId, found.card);
+}
+
+async function addAssignee(cardId, boardId) {
+  const input = document.getElementById('new-assignee-name');
+  const name = input.value.trim();
+  if (!name) return;
+  const found = findCard(cardId);
+  const current = found.card.assignees || [];
+  if (current.includes(name)) { input.value = ''; return; }
+  const updated = [...current, name];
+  setSync('saving');
+  const { error } = await sb.from('cards').update({ assignees: updated }).eq('id', cardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  found.card.assignees = updated;
+  setSync('ok');
+  renderModal(boardId, found.card);
+}
+
+async function removeAssignee(cardId, boardId, index) {
+  const found = findCard(cardId);
+  const current = found.card.assignees || [];
+  const updated = current.filter((_, i) => i !== index);
+  setSync('saving');
+  const { error } = await sb.from('cards').update({ assignees: updated }).eq('id', cardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  found.card.assignees = updated;
+  setSync('ok');
+  renderModal(boardId, found.card);
+}
+
+function formatCommentTime(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const sameDay = d.toDateString() === today.toDateString();
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (sameDay) return `Hoje às ${time}`;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ` às ${time}`;
+}
+
+async function addComment(cardId, boardId) {
+  const input = document.getElementById('new-comment-text');
+  const text = input.value.trim();
+  if (!text) return;
+  const author = ensureUserName();
+  const found = findCard(cardId);
+  setSync('saving');
+  const { data, error } = await sb.from('card_comments').insert({ card_id: cardId, author, text }).select().single();
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  found.card.card_comments = [...(found.card.card_comments || []), data];
+  setSync('ok');
+  renderModal(boardId, found.card);
+}
+
+/* ---------- Undo toast ---------- */
+let undoTimer = null;
+let pendingUndoFn = null;
+
+function showUndoToast(message, undoFn) {
+  const existing = document.getElementById('undo-toast');
+  if (existing) existing.remove();
+  clearTimeout(undoTimer);
+  pendingUndoFn = undoFn;
+  const html = `<div class="undo-toast" id="undo-toast">
+    <span>${escapeHtml(message)}</span>
+    <button onclick="runUndo()">Desfazer</button>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  undoTimer = setTimeout(() => {
+    const el = document.getElementById('undo-toast');
+    if (el) el.remove();
+    pendingUndoFn = null;
+  }, 6000);
+}
+
+function runUndo() {
+  const el = document.getElementById('undo-toast');
+  if (el) el.remove();
+  clearTimeout(undoTimer);
+  if (pendingUndoFn) {
+    const fn = pendingUndoFn;
+    pendingUndoFn = null;
+    fn();
+  }
+}
+
+async function deleteCard(cardId, boardId) {
+  const found = findCard(cardId);
+  if (!found) return;
+  const card = found.card;
+  if (!confirm(`Excluir "${card.title}"? Ela vai para a lixeira por 30 dias — dá pra restaurar depois em Configurações → Lixeira.`)) return;
+  const now = new Date().toISOString();
+  setSync('saving');
+  const { error } = await sb.from('cards').update({ deleted_at: now }).eq('id', cardId);
+  if (error) { setSync('error'); alert('Erro: ' + error.message); return; }
+  card.deleted_at = now;
+  state.cards[boardId] = state.cards[boardId].filter(c => c.id !== cardId);
+  setSync('ok');
+  closeModal();
+  showUndoToast(`Card "${card.title}" excluído`, async () => {
+    setSync('saving');
+    const { error: rErr } = await sb.from('cards').update({ deleted_at: null }).eq('id', cardId);
+    if (rErr) { setSync('error'); alert('Erro ao desfazer: ' + rErr.message); return; }
+    card.deleted_at = null;
+    state.cards[boardId].push(card);
+    setSync('ok');
+    render();
+  });
+}
+
+let pendingRemoteRefresh = false;
+let refreshTimer = null;
+
+function scheduleRefresh() {
+  const activeTag = document.activeElement?.tagName;
+  const isTyping = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+  const hasOpenPopover = document.getElementById('floating-filter-popover') || document.getElementById('floating-label-popover');
+  if (state.openCardId || (isTyping && hasOpenPopover)) {
+    pendingRemoteRefresh = true;
+    return;
+  }
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(refreshData, 350);
+}
+
+function onSearchBlur() {
+  if (pendingRemoteRefresh) {
+    pendingRemoteRefresh = false;
+    refreshData();
+  }
+}
+
+async function refreshData() {
+  await loadAll();
+}
+
+function setupRealtime() {
+  sb.channel('kanban-family-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cards' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'columns' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'labels' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'card_labels' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'checklist_items' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'attachments' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'boards' }, scheduleRefresh)
+    .subscribe();
+}
+
+/* ---------- Autenticação ---------- */
+let currentAuthEmail = null;
+let authViewMode = 'signin'; // 'signin' | 'signup' | 'recovery'
+
+function renderAuthCard() {
+  const card = document.getElementById('auth-card');
+  if (!card) return;
+
+  if (authViewMode === 'recovery') {
+    card.innerHTML = `
+      <h1>Nova senha</h1>
+      <p>Digite sua nova senha de acesso.</p>
+      <input type="password" id="auth-new-password" placeholder="Nova senha" autocomplete="new-password">
+      <input type="password" id="auth-new-password-confirm" placeholder="Confirme a nova senha" autocomplete="new-password">
+      <button class="modal-primary-btn" style="width:100%;" onclick="submitNewPassword()">Salvar nova senha</button>
+      <div class="auth-status" id="auth-status"></div>
+    `;
+    return;
+  }
+
+  const isSignup = authViewMode === 'signup';
+  card.innerHTML = `
+    <h1>Kanban Família Engel</h1>
+    <p>${isSignup ? 'Crie sua senha de acesso (só na primeira vez).' : 'Entre com seu e-mail e senha.'}</p>
+    <input type="email" id="auth-email" placeholder="seuemail@exemplo.com" autocomplete="email">
+    <input type="password" id="auth-password" placeholder="Senha" autocomplete="${isSignup ? 'new-password' : 'current-password'}">
+    ${isSignup ? '<input type="password" id="auth-password-confirm" placeholder="Confirme a senha" autocomplete="new-password">' : ''}
+    <button class="modal-primary-btn" style="width:100%;" onclick="submitAuthForm()">${isSignup ? 'Criar conta' : 'Entrar'}</button>
+    <div class="auth-status" id="auth-status"></div>
+    <div class="auth-toggle-row">
+      <a href="#" onclick="event.preventDefault();toggleAuthMode()">${isSignup ? 'Já tem conta? Entrar' : 'Primeira vez? Criar senha'}</a>
+    </div>
+    ${!isSignup ? `<div class="auth-toggle-row"><a href="#" onclick="event.preventDefault();forgotPassword()">Esqueci minha senha</a></div>` : ''}
+  `;
+}
+
+function toggleAuthMode() {
+  authViewMode = authViewMode === 'signup' ? 'signin' : 'signup';
+  renderAuthCard();
+}
+
+async function submitAuthForm() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const status = document.getElementById('auth-status');
+  if (!email || !password) { status.textContent = 'Preencha e-mail e senha.'; status.className = 'auth-status error'; return; }
+
+  if (authViewMode === 'signup') {
+    const confirmPwd = document.getElementById('auth-password-confirm').value;
+    if (password.length < 6) { status.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; status.className = 'auth-status error'; return; }
+    if (password !== confirmPwd) { status.textContent = 'As senhas não coincidem.'; status.className = 'auth-status error'; return; }
+    status.textContent = 'Criando conta...';
+    status.className = 'auth-status';
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) { status.textContent = 'Erro: ' + error.message; status.className = 'auth-status error'; return; }
+    if (!data.session) {
+      status.textContent = 'Conta criada! Confira seu e-mail para confirmar antes de entrar.';
+      status.className = 'auth-status success';
+    }
+  } else {
+    status.textContent = 'Entrando...';
+    status.className = 'auth-status';
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { status.textContent = 'E-mail ou senha incorretos.'; status.className = 'auth-status error'; return; }
+  }
+}
+
+async function forgotPassword() {
+  const emailInput = document.getElementById('auth-email');
+  const email = (emailInput?.value || '').trim();
+  const status = document.getElementById('auth-status');
+  if (!email) { status.textContent = 'Digite seu e-mail no campo acima primeiro.'; status.className = 'auth-status error'; return; }
+  const redirectTo = window.location.href.split('#')[0].split('?')[0];
+  status.textContent = 'Enviando...';
+  status.className = 'auth-status';
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) { status.textContent = 'Erro: ' + error.message; status.className = 'auth-status error'; return; }
+  status.textContent = 'Link de redefinição enviado! Confira seu e-mail.';
+  status.className = 'auth-status success';
+}
+
+async function submitNewPassword() {
+  const pwd = document.getElementById('auth-new-password').value;
+  const confirmPwd = document.getElementById('auth-new-password-confirm').value;
+  const status = document.getElementById('auth-status');
+  if (pwd.length < 6) { status.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; status.className = 'auth-status error'; return; }
+  if (pwd !== confirmPwd) { status.textContent = 'As senhas não coincidem.'; status.className = 'auth-status error'; return; }
+  status.textContent = 'Salvando...';
+  status.className = 'auth-status';
+  const { error } = await sb.auth.updateUser({ password: pwd });
+  if (error) { status.textContent = 'Erro: ' + error.message; status.className = 'auth-status error'; return; }
+  authViewMode = 'signin';
+  appStarted = true;
+  const { data: { session } } = await sb.auth.getSession();
+  currentAuthEmail = session?.user?.email || null;
+  showApp();
+}
+
+async function signOutUser() {
+  await sb.auth.signOut();
+}
+
+function showAuthGate() {
+  document.getElementById('auth-gate').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
+  renderAuthCard();
+}
+
+function showApp() {
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  applyDarkModePreference();
+  loadAll();
+  setupRealtime();
+}
+
+let appStarted = false;
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    authViewMode = 'recovery';
+    showAuthGate();
+    return;
+  }
+  if (session && !appStarted && authViewMode !== 'recovery') {
+    appStarted = true;
+    currentAuthEmail = session.user?.email || null;
+    showApp();
+  } else if (!session) {
+    appStarted = false;
+    currentAuthEmail = null;
+    authViewMode = 'signin';
+    showAuthGate();
+  }
+});
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    appStarted = true;
+    currentAuthEmail = session.user?.email || null;
+    showApp();
+  } else {
+    showAuthGate();
+  }
+})();
+</script>
+</body>
+</html>
